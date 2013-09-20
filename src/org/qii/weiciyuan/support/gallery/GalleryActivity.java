@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.*;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +25,7 @@ import org.qii.weiciyuan.support.file.FileManager;
 import org.qii.weiciyuan.support.imagetool.ImageTool;
 import org.qii.weiciyuan.support.lib.CircleProgressView;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
+import org.qii.weiciyuan.support.settinghelper.SettingUtility;
 import org.qii.weiciyuan.support.utils.Utility;
 import uk.co.senab.photoview.PhotoView;
 import uk.co.senab.photoview.PhotoViewAttacher;
@@ -80,7 +82,7 @@ public class GalleryActivity extends Activity {
             }
         });
         pager.setCurrentItem(getIntent().getIntExtra("position", 0));
-        pager.setOffscreenPageLimit(3);
+        pager.setOffscreenPageLimit(1);
         pager.setPageTransformer(true, new ZoomOutPageTransformer());
     }
 
@@ -149,12 +151,14 @@ public class GalleryActivity extends Activity {
             if (contentView == null)
                 return;
 
-            contentView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    finish();
-                }
-            });
+            if (SettingUtility.allowClickToCloseGallery()) {
+                contentView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                    }
+                });
+            }
 
             ImageView imageView = (ImageView) contentView.findViewById(R.id.image);
 
@@ -177,12 +181,14 @@ public class GalleryActivity extends Activity {
         PhotoView imageView = (PhotoView) contentView.findViewById(R.id.image);
         imageView.setVisibility(View.INVISIBLE);
 
-        imageView.setOnPhotoTapListener(new PhotoViewAttacher.OnPhotoTapListener() {
-            @Override
-            public void onPhotoTap(View view, float x, float y) {
-                GalleryActivity.this.finish();
-            }
-        });
+        if (SettingUtility.allowClickToCloseGallery()) {
+            imageView.setOnPhotoTapListener(new PhotoViewAttacher.OnPhotoTapListener() {
+                @Override
+                public void onPhotoTap(View view, float x, float y) {
+                    GalleryActivity.this.finish();
+                }
+            });
+        }
 
         WebView gif = (WebView) contentView.findViewById(R.id.gif);
         gif.setBackgroundColor(getResources().getColor(R.color.transparent));
@@ -191,6 +197,7 @@ public class GalleryActivity extends Activity {
         WebView large = (WebView) contentView.findViewById(R.id.large);
         large.setBackgroundColor(getResources().getColor(R.color.transparent));
         large.setVisibility(View.INVISIBLE);
+        large.setOverScrollMode(View.OVER_SCROLL_NEVER);
 
         TextView wait = (TextView) contentView.findViewById(R.id.wait);
 
@@ -334,10 +341,10 @@ public class GalleryActivity extends Activity {
     }
 
 
-    private void readPicture(ImageView imageView, WebView gif, WebView large, TextView readError, String url, String bitmapPath) {
+    private void readPicture(final ImageView imageView, WebView gif, WebView large, final TextView readError, final String url, final String bitmapPath) {
 
         if (bitmapPath.endsWith(".gif")) {
-            readGif(gif, readError, url, bitmapPath);
+            readGif(gif, large, readError, url, bitmapPath);
             return;
         }
 
@@ -353,36 +360,50 @@ public class GalleryActivity extends Activity {
         }
 
         if (isThisBitmapTooLarge) {
-
             readLarge(large, url, bitmapPath);
-
             return;
-//            imageView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-//            PhotoView photoView = (PhotoView) imageView;
-//            photoView.setMaxScale(15);
         }
+        new MyAsyncTask<Void, Bitmap, Bitmap>() {
 
-        Bitmap bitmap = null;
-        try {
-            bitmap = ImageTool.decodeBitmapFromSDCard(bitmapPath, IMAGEVIEW_SOFT_LAYER_MAX_WIDTH, IMAGEVIEW_SOFT_LAYER_MAX_HEIGHT);
-        } catch (OutOfMemoryError ignored) {
+            @Override
+            protected Bitmap doInBackground(Void... params) {
+                Bitmap bitmap = null;
+                try {
+                    bitmap = ImageTool.decodeBitmapFromSDCard(bitmapPath, IMAGEVIEW_SOFT_LAYER_MAX_WIDTH, IMAGEVIEW_SOFT_LAYER_MAX_HEIGHT);
+                } catch (OutOfMemoryError ignored) {
 
-        }
+                }
 
-        if (bitmap != null) {
-            imageView.setVisibility(View.VISIBLE);
-            imageView.setImageBitmap(bitmap);
-            bindImageViewLongClickListener(imageView, url, bitmapPath);
-            readError.setVisibility(View.INVISIBLE);
-        } else {
-            readError.setText(getString(R.string.picture_read_failed));
-            imageView.setVisibility(View.INVISIBLE);
-            readError.setVisibility(View.VISIBLE);
-        }
+                return bitmap;
+            }
 
+            @Override
+            protected void onPostExecute(Bitmap bitmap) {
+                super.onPostExecute(bitmap);
+                if (bitmap != null) {
+                    imageView.setVisibility(View.VISIBLE);
+                    imageView.setImageBitmap(bitmap);
+                    bindImageViewLongClickListener(imageView, url, bitmapPath);
+                    readError.setVisibility(View.INVISIBLE);
+                } else {
+                    readError.setText(getString(R.string.picture_read_failed));
+                    imageView.setVisibility(View.INVISIBLE);
+                    readError.setVisibility(View.VISIBLE);
+                }
+            }
+        }.executeOnExecutor(MyAsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    private void readGif(WebView webView, TextView readError, String url, String bitmapPath) {
+    private void readGif(WebView webView, WebView large, TextView readError, String url, String bitmapPath) {
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(bitmapPath, options);
+        if (options.outWidth >= Utility.getScreenWidth() || options.outHeight >= Utility.getScreenHeight()) {
+            readLarge(large, url, bitmapPath);
+            return;
+        }
+
         webView.setVisibility(View.VISIBLE);
         bindImageViewLongClickListener(((View) webView.getParent()), url, bitmapPath);
 
@@ -411,7 +432,9 @@ public class GalleryActivity extends Activity {
     private void readLarge(WebView large, String url, String bitmapPath) {
         large.setVisibility(View.VISIBLE);
         bindImageViewLongClickListener(large, url, bitmapPath);
-        large.setOnTouchListener(largeOnTouchListener);
+        if (SettingUtility.allowClickToCloseGallery()) {
+            large.setOnTouchListener(largeOnTouchListener);
+        }
 
         if (large.getTag() != null)
             return;
