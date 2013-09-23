@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.Loader;
+import android.text.TextUtils;
 import android.view.*;
 import android.widget.*;
 import org.qii.weiciyuan.R;
@@ -23,7 +24,6 @@ import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.SmileyPickerUtility;
 import org.qii.weiciyuan.ui.adapter.DMConversationAdapter;
 import org.qii.weiciyuan.ui.basefragment.AbstractTimeLineFragment;
-import org.qii.weiciyuan.ui.interfaces.AbstractAppActivity;
 import org.qii.weiciyuan.ui.loader.DMConversationLoader;
 import org.qii.weiciyuan.ui.widgets.QuickSendProgressFragment;
 
@@ -47,6 +47,8 @@ public class DMConversationListFragment extends AbstractTimeLineFragment<DMListB
     private SmileyPicker smiley;
 
     private LinearLayout mContainer;
+
+    private ProgressBar dmProgressBar;
 
     private Comparator<DMBean> comparator = new Comparator<DMBean>() {
         @Override
@@ -123,7 +125,10 @@ public class DMConversationListFragment extends AbstractTimeLineFragment<DMListB
                              ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dmconversationlistfragment_layout, container, false);
         empty = (TextView) view.findViewById(R.id.empty);
-        progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
+        //dirty hack.....in other list, progressbar is used to indicate loading local data; but in this list,
+        //use a progressbar to indicate loading new data first time, maybe be refactored at 0.50 version
+        progressBar = new ProgressBar(getActivity());
+        dmProgressBar = (ProgressBar) view.findViewById(R.id.progressbar);
         pullToRefreshListView = (PullToRefreshListView) view.findViewById(R.id.listView);
         pullToRefreshListView.setMode(PullToRefreshBase.Mode.BOTH);
         pullToRefreshListView.setOnRefreshListener(new PullToRefreshBase.OnRefreshListener2<ListView>() {
@@ -239,6 +244,12 @@ public class DMConversationListFragment extends AbstractTimeLineFragment<DMListB
 
 
     private void send() {
+
+        if (TextUtils.isEmpty(et.getText().toString())) {
+            et.setError(getString(R.string.content_cant_be_empty));
+            return;
+        }
+
         new QuickCommentTask().executeOnExecutor(MyAsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -251,6 +262,8 @@ public class DMConversationListFragment extends AbstractTimeLineFragment<DMListB
 
     @Override
     protected void newMsgOnPostExecute(DMListBean newValue, Bundle loaderArgs) {
+        dmProgressBar.setVisibility(View.INVISIBLE);
+
         if (newValue != null && newValue.getSize() > 0 && getActivity() != null) {
             getList().addNewData(newValue);
             Collections.sort(getList().getItemList(), comparator);
@@ -340,6 +353,10 @@ public class DMConversationListFragment extends AbstractTimeLineFragment<DMListB
 
     @Override
     public void loadNewMsg() {
+
+        if (bean.getSize() == 0)
+            dmProgressBar.setVisibility(View.VISIBLE);
+
         getLoaderManager().destroyLoader(MIDDLE_MSG_LOADER_ID);
         getLoaderManager().destroyLoader(OLD_MSG_LOADER_ID);
         dismissFooterView();
