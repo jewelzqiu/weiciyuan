@@ -19,6 +19,7 @@
     <string name="login_again">重新授权</string>
     <string name="have_account_whose_token_is_expired">有帐号已经过期，无法收取新消息</string>
     <string name="token_has_expired">已过期</string>
+    <string name="dont_have_other_account">没有多余帐号可供切换</string>
 
     <!--Tip Dialog-->
     <string name="tip_dialog_title">提示</string>
@@ -496,6 +497,7 @@
     <string name="pref_icon_design_title">图标</string>
     <string name="pref_cache_path_title">缓存文件路径</string>
     <string name="pref_saved_pic_path_title">图片保存路径</string>
+    <string name="pref_saved_log_path_title">崩溃日志保存路径</string>
     <string name="pref_open_source_license_title">开源协议</string>
 
 

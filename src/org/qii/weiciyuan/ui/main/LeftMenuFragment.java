@@ -12,15 +12,17 @@ import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.*;
 import com.slidingmenu.lib.SlidingMenu;
 import org.qii.weiciyuan.R;
+import org.qii.weiciyuan.bean.AccountBean;
 import org.qii.weiciyuan.bean.android.TimeLinePosition;
+import org.qii.weiciyuan.support.asyncdrawable.TimeLineBitmapDownloader;
+import org.qii.weiciyuan.support.database.AccountDBTask;
 import org.qii.weiciyuan.support.database.CommentToMeTimeLineDBTask;
 import org.qii.weiciyuan.support.database.MentionCommentsTimeLineDBTask;
 import org.qii.weiciyuan.support.database.MentionWeiboTimeLineDBTask;
+import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.utils.AppEventAction;
 import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.Utility;
@@ -37,6 +39,8 @@ import org.qii.weiciyuan.ui.userinfo.MyFavListFragment;
 import org.qii.weiciyuan.ui.userinfo.MyInfoActivity;
 import org.qii.weiciyuan.ui.userinfo.NewUserInfoFragment;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.TreeSet;
 
 /**
@@ -121,6 +125,8 @@ public class LeftMenuFragment extends AbstractAppFragment {
 
         switchCategory(currentIndex);
 
+        layout.nickname.setText(GlobalContext.getInstance().getCurrentAccountName());
+        layout.avatar.setAdapter(new AvatarAdapter(layout.avatar));
     }
 
     public void switchCategory(int position) {
@@ -586,8 +592,13 @@ public class LeftMenuFragment extends AbstractAppFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.slidingdrawer_contents, container, false);
+        final ScrollView view = (ScrollView) inflater.inflate(R.layout.slidingdrawer_contents, container, false);
+
         layout = new Layout();
+
+        layout.avatar = (Spinner) view.findViewById(R.id.avatar);
+        layout.nickname = (TextView) view.findViewById(R.id.nickname);
+
         layout.home = (LinearLayout) view.findViewById(R.id.btn_home);
         layout.mention = (LinearLayout) view.findViewById(R.id.btn_mention);
         layout.comment = (LinearLayout) view.findViewById(R.id.btn_comment);
@@ -771,7 +782,90 @@ public class LeftMenuFragment extends AbstractAppFragment {
         }
     }
 
+    private class AvatarAdapter extends BaseAdapter {
+
+        ArrayList<AccountBean> data = new ArrayList<AccountBean>();
+        int count = 0;
+
+        public AvatarAdapter(Spinner spinner) {
+            data.addAll(AccountDBTask.getAccountList());
+            if (data.size() == 1) {
+                count = 1;
+            } else {
+                count = data.size() - 1;
+            }
+            Iterator<AccountBean> iterator = data.iterator();
+            while (iterator.hasNext()) {
+                AccountBean accountBean = iterator.next();
+                if (accountBean.getUid().equals(GlobalContext.getInstance().getAccountBean().getUid())) {
+                    iterator.remove();
+                    break;
+                }
+            }
+
+        }
+
+        @Override
+        public int getCount() {
+            return count;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view = getLayoutInflater(null).inflate(R.layout.slidingdrawer_avatar, parent, false);
+            ImageView iv = (ImageView) view.findViewById(R.id.avatar);
+            TimeLineBitmapDownloader.getInstance().display(iv, -1, -1, GlobalContext.getInstance().getAccountBean().getInfo().getAvatar_large(), FileLocationMethod.avatar_large);
+
+            return view;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            View view = getLayoutInflater(null).inflate(R.layout.slidingdrawer_avatar_dropdown, parent, false);
+            TextView nickname = (TextView) view.findViewById(R.id.nickname);
+            ImageView avatar = (ImageView) view.findViewById(R.id.avatar);
+
+            if (data.size() > 0) {
+                final AccountBean accountBean = data.get(position);
+                TimeLineBitmapDownloader.getInstance().display(avatar, -1, -1, accountBean.getInfo().getAvatar_large(), FileLocationMethod.avatar_large);
+
+                nickname.setText(accountBean.getUsernick());
+
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        Intent start = new Intent(getActivity(), MainTimeLineActivity.class);
+                        start.putExtra("account", accountBean);
+                        getActivity().startActivity(start);
+                        getActivity().finish();
+
+                    }
+                });
+            } else {
+                avatar.setVisibility(View.GONE);
+                nickname.setTextColor(getResources().getColor(R.color.gray));
+                nickname.setText(getString(R.string.dont_have_other_account));
+            }
+            return view;
+        }
+    }
+
     private class Layout {
+
+        Spinner avatar;
+        TextView nickname;
+
         LinearLayout home;
         LinearLayout mention;
         LinearLayout comment;
