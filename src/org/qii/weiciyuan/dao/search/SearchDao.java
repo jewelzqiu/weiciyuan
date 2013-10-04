@@ -10,8 +10,8 @@ import org.qii.weiciyuan.support.error.WeiboException;
 import org.qii.weiciyuan.support.http.HttpMethod;
 import org.qii.weiciyuan.support.http.HttpUtility;
 import org.qii.weiciyuan.support.settinghelper.SettingUtility;
-import org.qii.weiciyuan.support.utils.AppLogger;
-import org.qii.weiciyuan.support.utils.TimeTool;
+import org.qii.weiciyuan.support.debug.AppLogger;
+import org.qii.weiciyuan.support.utils.TimeUtility;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -82,7 +82,7 @@ public class SearchDao {
                     iterator.remove();
                 } else {
                     msg.getListViewSpannableString();
-                    TimeTool.dealMills(msg);
+                    TimeUtility.dealMills(msg);
                 }
             }
         } catch (JsonSyntaxException e) {

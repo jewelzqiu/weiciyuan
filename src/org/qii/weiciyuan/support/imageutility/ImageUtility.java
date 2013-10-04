@@ -1,4 +1,4 @@
-package org.qii.weiciyuan.support.imagetool;
+package org.qii.weiciyuan.support.imageutility;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -24,7 +24,7 @@ import java.io.IOException;
  * User: Jiang Qi
  * Date: 12-8-3
  */
-public class ImageTool {
+public class ImageUtility {
 
 
     public static final int WITH_UNDEFINED = -1;
@@ -113,7 +113,7 @@ public class ImageTool {
             }
 
 
-            Bitmap cornerBitmap = ImageEdit.getRoundedCornerBitmap(bitmap);
+            Bitmap cornerBitmap = ImageEditUtility.getRoundedCornerBitmap(bitmap);
             if (cornerBitmap != bitmap) {
                 bitmap.recycle();
                 bitmap = cornerBitmap;
@@ -213,7 +213,7 @@ public class ImageTool {
                             }
                         }
                         if (bitmap != null) {
-                            Bitmap roundedCornerBitmap = ImageEdit.getRoundedCornerBitmap(bitmap);
+                            Bitmap roundedCornerBitmap = ImageEditUtility.getRoundedCornerBitmap(bitmap);
                             if (roundedCornerBitmap != bitmap) {
                                 bitmap.recycle();
                                 bitmap = roundedCornerBitmap;
@@ -290,7 +290,7 @@ public class ImageTool {
                 }
             }
 
-            Bitmap roundedBitmap = ImageEdit.getRoundedCornerBitmap(bitmap);
+            Bitmap roundedBitmap = ImageEditUtility.getRoundedCornerBitmap(bitmap);
             if (roundedBitmap != bitmap) {
                 bitmap.recycle();
                 bitmap = roundedBitmap;
@@ -352,7 +352,7 @@ public class ImageTool {
                     }
                 }
 
-                Bitmap roundedBitmap = ImageEdit.getRoundedCornerBitmap(bitmap, cornerRadius);
+                Bitmap roundedBitmap = ImageEditUtility.getRoundedCornerBitmap(bitmap, cornerRadius);
                 if (roundedBitmap != bitmap) {
                     bitmap.recycle();
                     bitmap = roundedBitmap;
@@ -616,7 +616,7 @@ public class ImageTool {
                 }
             }
 
-            Bitmap roundedBitmap = ImageEdit.getRoundedCornerBitmap(bitmap);
+            Bitmap roundedBitmap = ImageEditUtility.getRoundedCornerBitmap(bitmap);
             if (roundedBitmap != bitmap) {
                 bitmap.recycle();
                 bitmap = roundedBitmap;
@@ -674,7 +674,7 @@ public class ImageTool {
                 }
             }
 
-            Bitmap roundedBitmap = ImageEdit.getRoundedCornerBitmap(bitmap);
+            Bitmap roundedBitmap = ImageEditUtility.getRoundedCornerBitmap(bitmap);
             if (roundedBitmap != bitmap) {
                 bitmap.recycle();
                 bitmap = roundedBitmap;

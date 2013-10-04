@@ -35,10 +35,7 @@
     <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="System.out" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="adb1a749-f8b2-4943-8f1b-ec7fde434b0e" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/org/qii/weiciyuan/ui/userinfo/UserInfoActivity.java" afterPath="$PROJECT_DIR$/src/org/qii/weiciyuan/ui/userinfo/UserInfoActivity.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-    </list>
+    <list default="true" id="adb1a749-f8b2-4943-8f1b-ec7fde434b0e" name="Default" comment="" />
     <ignored path="weiciyuan.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -110,38 +107,16 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="BrowserWeiboMsgActivity.java" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="BrowserWeiboMsgActivity.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/org/qii/weiciyuan/ui/browser/BrowserWeiboMsgActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="79" column="35" selection-start="2724" selection-end="2724" vertical-scroll-proportion="0.0" vertical-offset="2967" max-vertical-offset="5865">
+            <state line="79" column="35" selection-start="2724" selection-end="2724" vertical-scroll-proportion="-2.1578948" vertical-offset="2967" max-vertical-offset="5865">
               <folding>
                 <element signature="class#5807:7658" expanded="false" />
                 <element signature="method#onCreateOptionsMenu#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
                 <element signature="method#onOptionsItemSelected#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
                 <element signature="method#buildShareActionMenu#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
                 <element signature="method#removeMsg#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="UserInfoActivity.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/org/qii/weiciyuan/ui/userinfo/UserInfoActivity.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="214" column="0" selection-start="7635" selection-end="7635" vertical-scroll-proportion="0.4148148" vertical-offset="4698" max-vertical-offset="16238">
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#5899#5907#0" expanded="true" />
-                <element signature="e#7781#7814#0" expanded="true" />
-                <element signature="e#7907#8427#0" expanded="true" />
-                <element signature="e#8416#8417#0" expanded="true" />
-                <element signature="e#12572#12611#0" expanded="true" />
-                <element signature="e#14826#14865#0" expanded="true" />
-                <element signature="e#15990#16031#0" expanded="true" />
-                <element signature="e#17539#17578#0" expanded="true" />
-                <element signature="e#18780#18823#0" expanded="true" />
-                <element signature="e#20815#20850#0" expanded="true" />
-                <element signature="e#24432#24470#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -501,7 +476,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1279" y="27" width="1922" height="1054" extended-state="7" />
+    <frame x="1279" y="27" width="1922" height="1054" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -516,7 +491,7 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32411504" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32411504" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Android" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32853982" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24973261" sideWeight="0.67146015" order="1" side_tool="false" content_ui="tabs" />
@@ -645,22 +620,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/qii/weiciyuan/ui/browser/BrowserWeiboMsgActivity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="79" column="35" selection-start="2724" selection-end="2724" vertical-scroll-proportion="0.0" vertical-offset="3105" max-vertical-offset="5865">
-          <folding>
-            <element signature="class#5807:7658" expanded="false" />
-            <element signature="method#onCreateOptionsMenu#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
-            <element signature="method#onOptionsItemSelected#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
-            <element signature="method#buildShareActionMenu#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
-            <element signature="method#removeMsg#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/qii/weiciyuan/ui/userinfo/UserInfoActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="214" column="0" selection-start="7635" selection-end="7635" vertical-scroll-proportion="0.4148148" vertical-offset="4698" max-vertical-offset="16238">
+        <state line="219" column="0" selection-start="7823" selection-end="7823" vertical-scroll-proportion="0.40696278" vertical-offset="4698" max-vertical-offset="16238">
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#5899#5907#0" expanded="true" />
@@ -674,6 +636,19 @@
             <element signature="e#18780#18823#0" expanded="true" />
             <element signature="e#20815#20850#0" expanded="true" />
             <element signature="e#24432#24470#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/qii/weiciyuan/ui/browser/BrowserWeiboMsgActivity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="79" column="35" selection-start="2724" selection-end="2724" vertical-scroll-proportion="-2.1578948" vertical-offset="2967" max-vertical-offset="5865">
+          <folding>
+            <element signature="class#5807:7658" expanded="false" />
+            <element signature="method#onCreateOptionsMenu#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
+            <element signature="method#onOptionsItemSelected#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
+            <element signature="method#buildShareActionMenu#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
+            <element signature="method#removeMsg#0;class#BrowserWeiboMsgActivity#0" expanded="false" />
           </folding>
         </state>
       </provider>

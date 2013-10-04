@@ -5,9 +5,9 @@ import android.os.Parcelable;
 import android.text.Html;
 import android.text.SpannableString;
 import android.text.TextUtils;
-import org.qii.weiciyuan.support.utils.ListViewTool;
+import org.qii.weiciyuan.support.utils.TimeLineUtility;
 import org.qii.weiciyuan.support.utils.ObjectToStringUtility;
-import org.qii.weiciyuan.support.utils.TimeTool;
+import org.qii.weiciyuan.support.utils.TimeUtility;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -303,7 +303,7 @@ public class MessageBean extends ItemBean implements Parcelable {
     }
 
     public String getListviewItemShowTime() {
-        return TimeTool.getListTime(this);
+        return TimeUtility.getListTime(this);
     }
 
     public long getIdLong() {
@@ -315,7 +315,7 @@ public class MessageBean extends ItemBean implements Parcelable {
         if (!TextUtils.isEmpty(listViewSpannableString)) {
             return listViewSpannableString;
         } else {
-            ListViewTool.addJustHighLightLinks(this);
+            TimeLineUtility.addJustHighLightLinks(this);
             return listViewSpannableString;
         }
     }
@@ -341,7 +341,7 @@ public class MessageBean extends ItemBean implements Parcelable {
 
     public long getMills() {
         if (mills == 0L) {
-            TimeTool.dealMills(this);
+            TimeUtility.dealMills(this);
         }
         return mills;
     }

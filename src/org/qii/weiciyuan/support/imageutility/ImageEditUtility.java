@@ -1,11 +1,11 @@
-package org.qii.weiciyuan.support.imagetool;
+package org.qii.weiciyuan.support.imageutility;
 
 import android.content.Context;
 import android.graphics.*;
 import android.view.View;
 import org.qii.weiciyuan.R;
 import org.qii.weiciyuan.support.file.FileManager;
-import org.qii.weiciyuan.support.utils.AppLogger;
+import org.qii.weiciyuan.support.debug.AppLogger;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,7 +14,7 @@ import java.io.FileOutputStream;
  * User: Jiang Qi
  * Date: 12-8-14
  */
-public class ImageEdit {
+public class ImageEditUtility {
     public static Bitmap getRoundedCornerBitmap(Bitmap bitmap) {
         return getRoundedCornerBitmap(bitmap, 3);
     }

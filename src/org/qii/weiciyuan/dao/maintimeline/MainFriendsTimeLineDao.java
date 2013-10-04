@@ -9,8 +9,8 @@ import org.qii.weiciyuan.support.error.WeiboException;
 import org.qii.weiciyuan.support.http.HttpMethod;
 import org.qii.weiciyuan.support.http.HttpUtility;
 import org.qii.weiciyuan.support.settinghelper.SettingUtility;
-import org.qii.weiciyuan.support.utils.AppLogger;
-import org.qii.weiciyuan.support.utils.ListViewTool;
+import org.qii.weiciyuan.support.debug.AppLogger;
+import org.qii.weiciyuan.support.utils.TimeLineUtility;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,8 +61,8 @@ public class MainFriendsTimeLineDao {
             return null;
         }
         if (value != null && value.getItemList().size() > 0) {
-            ListViewTool.filterMessage(value);
-            ListViewTool.filterHomeTimeLineSinaWeiboAd(value);
+            TimeLineUtility.filterMessage(value);
+            TimeLineUtility.filterHomeTimeLineSinaWeiboAd(value);
         }
 
 
