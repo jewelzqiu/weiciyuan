@@ -30,10 +30,7 @@ import org.qii.weiciyuan.support.asyncdrawable.TimeLineBitmapDownloader;
 import org.qii.weiciyuan.support.error.WeiboException;
 import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.gallery.GalleryActivity;
-import org.qii.weiciyuan.support.lib.LongClickableLinkMovementMethod;
-import org.qii.weiciyuan.support.lib.MyAsyncTask;
-import org.qii.weiciyuan.support.lib.ProfileTopAvatarImageView;
-import org.qii.weiciyuan.support.lib.WeiboDetailImageView;
+import org.qii.weiciyuan.support.lib.*;
 import org.qii.weiciyuan.support.lib.pulltorefresh.PullToRefreshBase;
 import org.qii.weiciyuan.support.lib.pulltorefresh.PullToRefreshListView;
 import org.qii.weiciyuan.support.utils.AppEventAction;
@@ -397,9 +394,6 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-//        layout.content_pic.setOnClickListener(picOnClickListener);
-//        layout.repost_pic.setOnClickListener(picOnClickListener);
-
         layout.location.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -465,7 +459,7 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
             TimeLineBitmapDownloader.getInstance().downloadAvatar(layout.avatar.getImageView(), msg.getUser());
         }
         layout.content.setText(msg.getListViewSpannableString());
-        layout.content.setMovementMethod(LongClickableLinkMovementMethod.getInstance());
+        layout.content.setOnTouchListener(new ClickableTextViewMentionOnTouchListener());
 
         layout.time.setText(msg.getTimeInFormat());
 
@@ -500,7 +494,7 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
 
             layout.repost_layout.setVisibility(View.VISIBLE);
             layout.recontent.setVisibility(View.VISIBLE);
-            layout.recontent.setMovementMethod(LongClickableLinkMovementMethod.getInstance());
+            layout.recontent.setOnTouchListener(new ClickableTextViewMentionOnTouchListener());
             if (repostMsg.getUser() != null) {
                 layout.recontent.setText(repostMsg.getListViewSpannableString());
                 buildRepostCount();
@@ -522,8 +516,6 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
         ((BrowserWeiboMsgActivity) getActivity()).updateCommentCount(msg.getComments_count());
         ((BrowserWeiboMsgActivity) getActivity()).updateRepostCount(msg.getReposts_count());
 
-//        Utility.buildTabCount(getActivity().getActionBar().getTabAt(1), getString(R.string.comments), msg.getComments_count());
-//        Utility.buildTabCount(getActivity().getActionBar().getTabAt(2), getString(R.string.repost), msg.getReposts_count());
     }
 
 

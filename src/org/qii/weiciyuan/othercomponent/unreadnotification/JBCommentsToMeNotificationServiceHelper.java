@@ -15,10 +15,10 @@ import org.qii.weiciyuan.bean.UnreadBean;
 import org.qii.weiciyuan.bean.android.UnreadTabIndex;
 import org.qii.weiciyuan.dao.unread.ClearUnreadDao;
 import org.qii.weiciyuan.support.error.WeiboException;
+import org.qii.weiciyuan.support.settinghelper.SettingUtility;
+import org.qii.weiciyuan.support.utils.BundleArgsConstants;
 import org.qii.weiciyuan.support.utils.GlobalContext;
-import org.qii.weiciyuan.support.utils.NotificationUtility;
 import org.qii.weiciyuan.support.utils.Utility;
-import org.qii.weiciyuan.ui.main.MainTimeLineActivity;
 import org.qii.weiciyuan.ui.send.WriteReplyToCommentActivity;
 
 /**
@@ -32,6 +32,9 @@ public class JBCommentsToMeNotificationServiceHelper extends NotificationService
     private CommentListBean data;
     private UnreadBean unreadBean;
     private int currentIndex;
+    private Intent clickToOpenAppPendingIntentInner;
+    private String ticker;
+
 
     private static BroadcastReceiver clearNotificationEventReceiver;
 
@@ -39,10 +42,13 @@ public class JBCommentsToMeNotificationServiceHelper extends NotificationService
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        this.accountBean = (AccountBean) intent.getParcelableExtra(NotificationServiceHelper.ACCOUNT_ARG);
-        this.data = (CommentListBean) intent.getParcelableExtra(NotificationServiceHelper.COMMENTS_TO_ME_ARG);
-        this.unreadBean = (UnreadBean) intent.getParcelableExtra(NotificationServiceHelper.UNREAD_ARG);
+        this.accountBean = intent.getParcelableExtra(NotificationServiceHelper.ACCOUNT_ARG);
+        this.data = intent.getParcelableExtra(NotificationServiceHelper.COMMENTS_TO_ME_ARG);
+        this.unreadBean = intent.getParcelableExtra(NotificationServiceHelper.UNREAD_ARG);
         this.currentIndex = intent.getIntExtra(NotificationServiceHelper.CURRENT_INDEX_ARG, 0);
+        this.clickToOpenAppPendingIntentInner = intent.getParcelableExtra(NotificationServiceHelper.PENDING_INTENT_INNER_ARG);
+        this.ticker = intent.getStringExtra(NotificationServiceHelper.TICKER);
+
 
         buildNotification();
 
@@ -54,15 +60,16 @@ public class JBCommentsToMeNotificationServiceHelper extends NotificationService
 
     private void buildNotification() {
 
+        int count = (data.getSize() >= Integer.valueOf(SettingUtility.getMsgCount()) ? unreadBean.getCmt() : data.getSize());
+
         Notification.Builder builder = new Notification.Builder(getBaseContext())
-                .setTicker(NotificationUtility.getTicker(unreadBean))
+                .setTicker(ticker)
                 .setContentText(accountBean.getUsernick())
                 .setSmallIcon(R.drawable.ic_notification)
                 .setAutoCancel(true)
                 .setContentIntent(getPendingIntent())
                 .setOnlyAlertOnce(true);
 
-        int count = (unreadBean.getCmt() > data.getSize() ? unreadBean.getCmt() : data.getSize());
         builder.setContentTitle(String.format(GlobalContext.getInstance().getString(R.string.new_comments), String.valueOf(count)));
 
         if (data.getSize() > 1)
@@ -110,11 +117,15 @@ public class JBCommentsToMeNotificationServiceHelper extends NotificationService
         builder.addAction(R.drawable.reply_to_comment_light, getApplicationContext().getString(R.string.reply_to_comment), pendingIntent);
 
 
-        Intent nextIntent = new Intent(JBCommentsToMeNotificationServiceHelper.this, JBCommentsToMeNotificationServiceHelper.class);
-        nextIntent.putExtra(NotificationServiceHelper.ACCOUNT_ARG, accountBean);
-        nextIntent.putExtra(NotificationServiceHelper.COMMENTS_TO_ME_ARG, data);
-        nextIntent.putExtra(NotificationServiceHelper.UNREAD_ARG, unreadBean);
         if (data.getSize() > 1) {
+
+            Intent nextIntent = new Intent(JBCommentsToMeNotificationServiceHelper.this, JBCommentsToMeNotificationServiceHelper.class);
+            nextIntent.putExtra(NotificationServiceHelper.ACCOUNT_ARG, accountBean);
+            nextIntent.putExtra(NotificationServiceHelper.COMMENTS_TO_ME_ARG, data);
+            nextIntent.putExtra(NotificationServiceHelper.UNREAD_ARG, unreadBean);
+            nextIntent.putExtra(NotificationServiceHelper.PENDING_INTENT_INNER_ARG, clickToOpenAppPendingIntentInner);
+            nextIntent.putExtra(NotificationServiceHelper.TICKER, ticker);
+
             String actionName;
             int nextIndex;
             int actionDrawable;
@@ -160,12 +171,9 @@ public class JBCommentsToMeNotificationServiceHelper extends NotificationService
     }
 
     private PendingIntent getPendingIntent() {
-        Intent i = new Intent(getBaseContext(), MainTimeLineActivity.class);
-        i.putExtra("account", accountBean);
-        i.putExtra("comment", data);
-        i.putExtra("unreadTabIndex", UnreadTabIndex.COMMENT_TO_ME);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+        clickToOpenAppPendingIntentInner.setExtrasClassLoader(getClass().getClassLoader());
+        clickToOpenAppPendingIntentInner.putExtra(BundleArgsConstants.OPEN_NAVIGATION_INDEX_EXTRA, UnreadTabIndex.COMMENT_TO_ME);
+        PendingIntent pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, clickToOpenAppPendingIntentInner, PendingIntent.FLAG_UPDATE_CURRENT);
         return pendingIntent;
     }
 }

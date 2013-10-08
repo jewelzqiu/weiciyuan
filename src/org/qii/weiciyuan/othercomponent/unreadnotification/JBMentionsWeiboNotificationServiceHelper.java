@@ -14,10 +14,10 @@ import org.qii.weiciyuan.bean.UnreadBean;
 import org.qii.weiciyuan.bean.android.UnreadTabIndex;
 import org.qii.weiciyuan.dao.unread.ClearUnreadDao;
 import org.qii.weiciyuan.support.error.WeiboException;
+import org.qii.weiciyuan.support.settinghelper.SettingUtility;
+import org.qii.weiciyuan.support.utils.BundleArgsConstants;
 import org.qii.weiciyuan.support.utils.GlobalContext;
-import org.qii.weiciyuan.support.utils.NotificationUtility;
 import org.qii.weiciyuan.support.utils.Utility;
-import org.qii.weiciyuan.ui.main.MainTimeLineActivity;
 import org.qii.weiciyuan.ui.send.WriteCommentActivity;
 
 /**
@@ -29,6 +29,8 @@ public class JBMentionsWeiboNotificationServiceHelper extends NotificationServic
     private MessageListBean data;
     private UnreadBean unreadBean;
     private int currentIndex;
+    private Intent clickToOpenAppPendingIntentInner;
+    private String ticker;
 
     private static BroadcastReceiver clearNotificationEventReceiver;
 
@@ -36,10 +38,12 @@ public class JBMentionsWeiboNotificationServiceHelper extends NotificationServic
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        this.accountBean = (AccountBean) intent.getParcelableExtra(NotificationServiceHelper.ACCOUNT_ARG);
-        this.data = (MessageListBean) intent.getParcelableExtra(NotificationServiceHelper.MENTIONS_WEIBO_ARG);
-        this.unreadBean = (UnreadBean) intent.getParcelableExtra(NotificationServiceHelper.UNREAD_ARG);
+        this.accountBean = intent.getParcelableExtra(NotificationServiceHelper.ACCOUNT_ARG);
+        this.data = intent.getParcelableExtra(NotificationServiceHelper.MENTIONS_WEIBO_ARG);
+        this.unreadBean = intent.getParcelableExtra(NotificationServiceHelper.UNREAD_ARG);
         this.currentIndex = intent.getIntExtra(NotificationServiceHelper.CURRENT_INDEX_ARG, 0);
+        this.clickToOpenAppPendingIntentInner = intent.getParcelableExtra(NotificationServiceHelper.PENDING_INTENT_INNER_ARG);
+        this.ticker = intent.getStringExtra(NotificationServiceHelper.TICKER);
 
         buildNotification();
 
@@ -51,15 +55,17 @@ public class JBMentionsWeiboNotificationServiceHelper extends NotificationServic
 
     private void buildNotification() {
 
+        int count = (data.getSize() >= Integer.valueOf(SettingUtility.getMsgCount()) ? unreadBean.getMention_status() : data.getSize());
+
+
         Notification.Builder builder = new Notification.Builder(getBaseContext())
-                .setTicker(NotificationUtility.getTicker(unreadBean))
+                .setTicker(ticker)
                 .setContentText(accountBean.getUsernick())
                 .setSmallIcon(R.drawable.ic_notification)
                 .setAutoCancel(true)
                 .setContentIntent(getPendingIntent())
                 .setOnlyAlertOnce(true);
 
-        int count = (unreadBean.getMention_status() > data.getSize() ? unreadBean.getMention_status() : data.getSize());
         builder.setContentTitle(String.format(GlobalContext.getInstance().getString(R.string.new_mentions_weibo), String.valueOf(count)));
 
         if (data.getSize() > 1)
@@ -114,6 +120,8 @@ public class JBMentionsWeiboNotificationServiceHelper extends NotificationServic
             nextIntent.putExtra(NotificationServiceHelper.ACCOUNT_ARG, accountBean);
             nextIntent.putExtra(NotificationServiceHelper.MENTIONS_WEIBO_ARG, data);
             nextIntent.putExtra(NotificationServiceHelper.UNREAD_ARG, unreadBean);
+            nextIntent.putExtra(NotificationServiceHelper.PENDING_INTENT_INNER_ARG, clickToOpenAppPendingIntentInner);
+            nextIntent.putExtra(NotificationServiceHelper.TICKER, ticker);
 
             String actionName;
             int nextIndex;
@@ -153,12 +161,9 @@ public class JBMentionsWeiboNotificationServiceHelper extends NotificationServic
     }
 
     private PendingIntent getPendingIntent() {
-        Intent i = new Intent(getBaseContext(), MainTimeLineActivity.class);
-        i.putExtra("account", accountBean);
-        i.putExtra("repost", data);
-        i.putExtra("unreadTabIndex", UnreadTabIndex.MENTION_WEIBO);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+        clickToOpenAppPendingIntentInner.setExtrasClassLoader(getClass().getClassLoader());
+        clickToOpenAppPendingIntentInner.putExtra(BundleArgsConstants.OPEN_NAVIGATION_INDEX_EXTRA, UnreadTabIndex.MENTION_WEIBO);
+        PendingIntent pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, clickToOpenAppPendingIntentInner, PendingIntent.FLAG_UPDATE_CURRENT);
         return pendingIntent;
     }
 

@@ -1,16 +1,16 @@
 package org.qii.weiciyuan.ui.adapter;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.Layout;
-import android.text.SpannableString;
-import android.text.TextPaint;
-import android.text.TextUtils;
+import android.text.*;
+import android.text.style.BackgroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,11 +25,11 @@ import org.qii.weiciyuan.bean.UserBean;
 import org.qii.weiciyuan.support.asyncdrawable.IWeiciyuanDrawable;
 import org.qii.weiciyuan.support.asyncdrawable.PictureBitmapDrawable;
 import org.qii.weiciyuan.support.asyncdrawable.TimeLineBitmapDownloader;
+import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.gallery.GalleryActivity;
 import org.qii.weiciyuan.support.lib.*;
 import org.qii.weiciyuan.support.settinghelper.SettingUtility;
-import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.ThemeUtility;
 import org.qii.weiciyuan.support.utils.Utility;
@@ -519,7 +519,9 @@ public abstract class AbstractAppListAdapter<T extends ItemBean> extends BaseAda
                         Intent intent = new Intent(getActivity(), GalleryActivity.class);
                         intent.putExtra("msg", msg);
                         intent.putExtra("position", finalI);
-                        getActivity().startActivity(intent);
+                        Bundle scaleBundle = ActivityOptions.makeScaleUpAnimation(
+                                v, 0, 0, v.getWidth(), v.getHeight()).toBundle();
+                        getActivity().startActivity(intent, scaleBundle);
                     }
                 });
 
@@ -653,7 +655,9 @@ public abstract class AbstractAppListAdapter<T extends ItemBean> extends BaseAda
                     if (!clipped && bitmap != null)
                         intent.putExtra("rect", rect);
 
-                    getActivity().startActivity(intent);
+                    Bundle scaleBundle = ActivityOptions.makeScaleUpAnimation(
+                            v, 0, 0, v.getWidth(), v.getHeight()).toBundle();
+                    getActivity().startActivity(intent, scaleBundle);
                 }
             });
             buildPic(msg, view);
@@ -762,6 +766,8 @@ public abstract class AbstractAppListAdapter<T extends ItemBean> extends BaseAda
     //onTouchListener has some strange problem, when user click link, holder.listview_root may also receive a MotionEvent.ACTION_DOWN event
     //the background then changed
     private View.OnTouchListener onTouchListener = new View.OnTouchListener() {
+
+
         @Override
         public boolean onTouch(View v, MotionEvent event) {
 
@@ -784,23 +790,59 @@ public abstract class AbstractAppListAdapter<T extends ItemBean> extends BaseAda
 
             TextView tv = (TextView) v;
             SpannableString value = SpannableString.valueOf(tv.getText());
-            MyURLSpan[] urlSpans = value.getSpans(0, value.length(), MyURLSpan.class);
-            boolean result = false;
-            for (MyURLSpan urlSpan : urlSpans) {
-                int start = value.getSpanStart(urlSpan);
-                int end = value.getSpanEnd(urlSpan);
-                if (start <= offset && offset <= end) {
-                    result = true;
+
+            LongClickableLinkMovementMethod.getInstance().onTouchEvent(tv, value, event);
+
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    MyURLSpan[] urlSpans = value.getSpans(0, value.length(), MyURLSpan.class);
+                    boolean find = false;
+                    int findStart = 0;
+                    int findEnd = 0;
+                    for (MyURLSpan urlSpan : urlSpans) {
+                        int start = value.getSpanStart(urlSpan);
+                        int end = value.getSpanEnd(urlSpan);
+                        if (start <= offset && offset <= end) {
+                            find = true;
+                            findStart = start;
+                            findEnd = end;
+
+                            break;
+                        }
+                    }
+                    boolean hasActionMode = ((AbstractTimeLineFragment) fragment).hasActionMode();
+                    boolean result = false;
+                    if (find && !hasActionMode) {
+                        result = true;
+                    }
+
+                    if (find && !result) {
+                        BackgroundColorSpan[] backgroundColorSpans = value.getSpans(0, value.length(), BackgroundColorSpan.class);
+                        for (BackgroundColorSpan urlSpan : backgroundColorSpans) {
+                            value.removeSpan(urlSpan);
+                            ((TextView) v).setText(value);
+                        }
+                    }
+
+                    if (result) {
+                        BackgroundColorSpan backgroundColorSpan = new BackgroundColorSpan(ThemeUtility.getColor(R.attr.link_pressed_background_color));
+                        value.setSpan(backgroundColorSpan, findStart, findEnd, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                        ((TextView) v).setText(value);
+                    }
+
+                    return result;
+                case MotionEvent.ACTION_CANCEL:
+                case MotionEvent.ACTION_UP:
+                    LongClickableLinkMovementMethod.getInstance().removeLongClickCallback();
+                    BackgroundColorSpan[] backgroundColorSpans = value.getSpans(0, value.length(), BackgroundColorSpan.class);
+                    for (BackgroundColorSpan urlSpan : backgroundColorSpans) {
+                        value.removeSpan(urlSpan);
+                        ((TextView) v).setText(value);
+                    }
                     break;
-                }
             }
 
-            boolean hasActionMode = ((AbstractTimeLineFragment) fragment).hasActionMode();
-            if (result && !hasActionMode) {
-                return LongClickableLinkMovementMethod.getInstance().onTouchEvent(tv, value, event);
-            } else {
-                return false;
-            }
+            return false;
 
         }
     };
