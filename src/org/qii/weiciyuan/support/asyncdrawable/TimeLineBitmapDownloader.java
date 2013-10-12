@@ -2,7 +2,6 @@ package org.qii.weiciyuan.support.asyncdrawable;
 
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,12 +11,12 @@ import android.widget.ImageView;
 import org.qii.weiciyuan.R;
 import org.qii.weiciyuan.bean.MessageBean;
 import org.qii.weiciyuan.bean.UserBean;
+import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.file.FileManager;
 import org.qii.weiciyuan.support.imageutility.ImageUtility;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
 import org.qii.weiciyuan.support.settinghelper.SettingUtility;
-import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.ThemeUtility;
 import org.qii.weiciyuan.ui.basefragment.AbstractTimeLineFragment;
@@ -28,7 +27,7 @@ import org.qii.weiciyuan.ui.basefragment.AbstractTimeLineFragment;
  */
 public class TimeLineBitmapDownloader {
 
-    private Drawable defaultBG;
+    private int defaultPictureResId;
 
     private Handler handler;
 
@@ -44,7 +43,7 @@ public class TimeLineBitmapDownloader {
 
     private TimeLineBitmapDownloader(Handler handler) {
         this.handler = handler;
-        this.defaultBG = new ColorDrawable(ThemeUtility.getColor(R.attr.listview_pic_bg));
+        this.defaultPictureResId = ThemeUtility.getResourceId(R.attr.listview_pic_bg);
     }
 
     public static TimeLineBitmapDownloader getInstance() {
@@ -113,7 +112,7 @@ public class TimeLineBitmapDownloader {
     public void downloadAvatar(ImageView view, UserBean user, boolean isFling) {
 
         if (user == null) {
-            view.setImageDrawable(defaultBG);
+            view.setImageResource(defaultPictureResId);
             return;
         }
 
@@ -185,7 +184,10 @@ public class TimeLineBitmapDownloader {
      * again, then app play annoying animation , this method will check whether we should read again or not.
      */
     private boolean shouldReloadPicture(ImageView view, String urlKey) {
-        if (urlKey.equals(view.getTag()) && view.getDrawable() != null && ((BitmapDrawable) view.getDrawable() != null
+        if (urlKey.equals(view.getTag())
+                && view.getDrawable() != null
+                && view.getDrawable() instanceof BitmapDrawable
+                && ((BitmapDrawable) view.getDrawable() != null
                 && ((BitmapDrawable) view.getDrawable()).getBitmap() != null)) {
             AppLogger.d("shouldReloadPicture=false");
             return false;
@@ -213,7 +215,7 @@ public class TimeLineBitmapDownloader {
         } else {
 
             if (isFling) {
-                view.setImageDrawable(defaultBG);
+                view.setImageResource(defaultPictureResId);
                 return;
             }
 
@@ -265,7 +267,7 @@ public class TimeLineBitmapDownloader {
         } else {
 
             if (isFling) {
-                view.setImageDrawable(defaultBG);
+                view.getImageView().setImageResource(defaultPictureResId);
                 if (view.getProgressBar() != null)
                     view.getProgressBar().setVisibility(View.INVISIBLE);
                 view.setGifFlag(ImageUtility.isThisPictureGif(urlKey));

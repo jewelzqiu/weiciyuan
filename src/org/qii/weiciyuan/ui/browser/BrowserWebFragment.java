@@ -36,11 +36,21 @@ public class BrowserWebFragment extends Fragment {
     private ShareActionProvider mShareActionProvider;
     private MenuItem refreshItem;
 
+    public BrowserWebFragment() {
+        super();
+    }
 
     public BrowserWebFragment(String url) {
         super();
         mUrl = url;
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("mUrl", mUrl);
+    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,6 +69,9 @@ public class BrowserWebFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            mUrl = savedInstanceState.getString("mUrl");
+        }
 
     }
 
