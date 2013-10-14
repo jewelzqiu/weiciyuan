@@ -32,7 +32,7 @@ import org.qii.weiciyuan.ui.interfaces.AbstractAppFragment;
 import org.qii.weiciyuan.ui.login.AccountActivity;
 import org.qii.weiciyuan.ui.maintimeline.FriendsTimeLineFragment;
 import org.qii.weiciyuan.ui.nearby.NearbyTimeLineActivity;
-import org.qii.weiciyuan.ui.preference.SettingActivity;
+import org.qii.weiciyuan.ui.preference.SettingFragment;
 import org.qii.weiciyuan.ui.search.SearchMainParentFragment;
 import org.qii.weiciyuan.ui.userinfo.MyFavListFragment;
 import org.qii.weiciyuan.ui.userinfo.NewUserInfoFragment;
@@ -115,6 +115,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
         rightFragments.append(DM_INDEX, ((MainTimeLineActivity) getActivity()).getDMFragment());
         rightFragments.append(FAV_INDEX, ((MainTimeLineActivity) getActivity()).getFavFragment());
         rightFragments.append(PROFILE_INDEX, ((MainTimeLineActivity) getActivity()).getMyProfileFragment());
+        rightFragments.append(SETTING_INDEX, ((MainTimeLineActivity) getActivity()).getSettingFragment());
 
         switchCategory(currentIndex);
 
@@ -145,6 +146,9 @@ public class LeftMenuFragment extends AbstractAppFragment {
                 break;
             case PROFILE_INDEX:
                 showProfilePage(true);
+                break;
+            case SETTING_INDEX:
+                showSettingPage(true);
                 break;
         }
         drawButtonsBackground(position);
@@ -185,10 +189,6 @@ public class LeftMenuFragment extends AbstractAppFragment {
         intent.putExtra("launcher", false);
         startActivity(intent);
         getActivity().finish();
-    }
-
-    private void showSettingPage() {
-        startActivity(new Intent(getActivity(), SettingActivity.class));
     }
 
 
@@ -232,6 +232,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ft.hide(rightFragments.get(DM_INDEX));
         ft.hide(rightFragments.get(FAV_INDEX));
         ft.hide(rightFragments.get(PROFILE_INDEX));
+        ft.hide(rightFragments.get(SETTING_INDEX));
 
         FriendsTimeLineFragment fragment = (FriendsTimeLineFragment) rightFragments.get(HOME_INDEX);
         ft.show(fragment);
@@ -275,6 +276,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ft.hide(rightFragments.get(DM_INDEX));
         ft.hide(rightFragments.get(FAV_INDEX));
         ft.hide(rightFragments.get(PROFILE_INDEX));
+        ft.hide(rightFragments.get(SETTING_INDEX));
 
 
         Fragment m = rightFragments.get(MENTIONS_INDEX);
@@ -338,6 +340,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ft.hide(rightFragments.get(DM_INDEX));
         ft.hide(rightFragments.get(FAV_INDEX));
         ft.hide(rightFragments.get(PROFILE_INDEX));
+        ft.hide(rightFragments.get(SETTING_INDEX));
 
         Fragment fragment = rightFragments.get(COMMENTS_INDEX);
         if (firstStart) {
@@ -395,6 +398,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ft.hide(rightFragments.get(DM_INDEX));
         ft.hide(rightFragments.get(FAV_INDEX));
         ft.hide(rightFragments.get(PROFILE_INDEX));
+        ft.hide(rightFragments.get(SETTING_INDEX));
 
         Fragment fragment = rightFragments.get(SEARCH_INDEX);
 
@@ -454,6 +458,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ft.hide(rightFragments.get(SEARCH_INDEX));
         ft.hide(rightFragments.get(FAV_INDEX));
         ft.hide(rightFragments.get(PROFILE_INDEX));
+        ft.hide(rightFragments.get(SETTING_INDEX));
 
         Fragment fragment = rightFragments.get(DM_INDEX);
 
@@ -504,6 +509,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ft.hide(rightFragments.get(SEARCH_INDEX));
         ft.hide(rightFragments.get(DM_INDEX));
         ft.hide(rightFragments.get(PROFILE_INDEX));
+        ft.hide(rightFragments.get(SETTING_INDEX));
 
         Fragment fragment = rightFragments.get(FAV_INDEX);
 
@@ -552,6 +558,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ft.hide(rightFragments.get(SEARCH_INDEX));
         ft.hide(rightFragments.get(DM_INDEX));
         ft.hide(rightFragments.get(FAV_INDEX));
+        ft.hide(rightFragments.get(SETTING_INDEX));
 
         Fragment fragment = rightFragments.get(PROFILE_INDEX);
 
@@ -560,6 +567,53 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ((NewUserInfoFragment) fragment).buildActionBarAndViewPagerTitles();
     }
 
+    private boolean showSettingPage(boolean reset) {
+        getActivity().getActionBar().setDisplayShowTitleEnabled(true);
+        if (currentIndex == SETTING_INDEX && !reset) {
+            ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
+            return true;
+        }
+        getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+
+        currentIndex = SETTING_INDEX;
+        if (Utility.isDevicePort() && !reset) {
+            BroadcastReceiver receiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(this);
+                    if (currentIndex == SETTING_INDEX)
+                        showSettingPageImp();
+
+                }
+            };
+            LocalBroadcastManager.getInstance(getActivity()).registerReceiver(receiver, new IntentFilter(AppEventAction.SLIDING_MENU_CLOSED_BROADCAST));
+        } else {
+            showSettingPageImp();
+        }
+
+        ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
+
+        return false;
+    }
+
+    private void showSettingPageImp() {
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+
+        ft.hide(rightFragments.get(HOME_INDEX));
+        ft.hide(rightFragments.get(MENTIONS_INDEX));
+        ft.hide(rightFragments.get(COMMENTS_INDEX));
+        ft.hide(rightFragments.get(SEARCH_INDEX));
+        ft.hide(rightFragments.get(DM_INDEX));
+        ft.hide(rightFragments.get(FAV_INDEX));
+        ft.hide(rightFragments.get(PROFILE_INDEX));
+
+        Fragment fragment = rightFragments.get(SETTING_INDEX);
+
+        ft.show(fragment);
+        ft.commit();
+        ((MainTimeLineActivity) getActivity()).setCurrentFragment((MainTimeLineActivity.ScrollableListFragment) fragment);
+        ((SettingFragment) fragment).buildActionBarAndViewPagerTitles();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -650,7 +704,8 @@ public class LeftMenuFragment extends AbstractAppFragment {
                     drawButtonsBackground(DM_INDEX);
                     break;
                 case R.id.btn_setting:
-                    showSettingPage();
+                    showSettingPage(false);
+                    drawButtonsBackground(SETTING_INDEX);
                     break;
                 case R.id.btn_logout:
                     showAccountSwitchPage();
@@ -669,6 +724,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
 //        layout.setting.setBackgroundResource(R.color.transparent);
         layout.dm.setBackgroundResource(R.drawable.btn_drawer_menu);
         layout.fav.setBackgroundResource(R.drawable.btn_drawer_menu);
+        layout.setting.setBackgroundResource(R.drawable.btn_drawer_menu);
 //        layout.logout.setBackgroundResource(R.color.transparent);
         switch (position) {
             case HOME_INDEX:

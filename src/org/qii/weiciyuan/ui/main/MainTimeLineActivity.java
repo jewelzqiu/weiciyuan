@@ -34,6 +34,7 @@ import org.qii.weiciyuan.ui.dm.DMUserListFragment;
 import org.qii.weiciyuan.ui.interfaces.IAccountInfo;
 import org.qii.weiciyuan.ui.interfaces.IUserInfo;
 import org.qii.weiciyuan.ui.maintimeline.FriendsTimeLineFragment;
+import org.qii.weiciyuan.ui.preference.SettingFragment;
 import org.qii.weiciyuan.ui.search.SearchMainParentFragment;
 import org.qii.weiciyuan.ui.send.WriteWeiboActivity;
 import org.qii.weiciyuan.ui.userinfo.MyFavListFragment;
@@ -149,6 +150,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
 
         Fragment fav = getFavFragment();
         Fragment myself = getMyProfileFragment();
+        Fragment setting = getSettingFragment();
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         if (!friend.isAdded()) {
@@ -174,6 +176,11 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
         if (!myself.isAdded()) {
             fragmentTransaction.add(R.id.menu_right_fl, myself, NewUserInfoFragment.class.getName());
             fragmentTransaction.hide(myself);
+        }
+
+        if (!setting.isAdded()) {
+            fragmentTransaction.add(R.id.menu_right_fl, setting, SettingFragment.class.getName());
+            fragmentTransaction.hide(setting);
         }
 
         if (GlobalContext.getInstance().getAccountBean().isBlack_magic()) {
@@ -308,10 +315,14 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        GlobalContext.getInstance().startedApp = false;
-        GlobalContext.getInstance().getAvatarCache().evictAll();
-        finish();
+        if (getMenuFragment().getCurrentIndex() == LeftMenuFragment.SETTING_INDEX) {
+            showMenu();
+        } else {
+            super.onBackPressed();
+            GlobalContext.getInstance().startedApp = false;
+            GlobalContext.getInstance().getAvatarCache().evictAll();
+            finish();
+        }
     }
 
     @Override
@@ -517,6 +528,16 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
         if (fragment == null) {
             fragment = new NewUserInfoFragment(GlobalContext.getInstance().getAccountBean().getInfo(),
                     GlobalContext.getInstance().getSpecialToken());
+            fragment.setArguments(new Bundle());
+        }
+        return fragment;
+    }
+
+    public SettingFragment getSettingFragment() {
+        SettingFragment fragment = (SettingFragment) getSupportFragmentManager().findFragmentByTag(
+                SettingFragment.class.getName());
+        if (fragment == null) {
+            fragment = new SettingFragment(R.xml.pref);
             fragment.setArguments(new Bundle());
         }
         return fragment;
