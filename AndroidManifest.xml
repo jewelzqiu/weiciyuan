@@ -97,10 +97,10 @@
         <activity
             android:name=".ui.browser.BrowserCommentActivity"
             android:label="@string/comment_detail"/>
-        <activity
-            android:name=".ui.browser.BrowserBigPicActivity"
-            android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar"
-            android:launchMode="singleTop"/>
+        <!--<activity-->
+            <!--android:name=".ui.browser.BrowserBigPicActivity"-->
+            <!--android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar"-->
+            <!--android:launchMode="singleTop"/>-->
         <activity
             android:name=".support.gallery.GalleryActivity"
             android:theme="@style/GalleryTheme"

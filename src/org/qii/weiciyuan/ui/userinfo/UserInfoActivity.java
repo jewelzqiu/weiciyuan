@@ -19,7 +19,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.text.TextUtils;
-import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,13 +32,11 @@ import org.qii.weiciyuan.dao.relationship.FriendshipsDao;
 import org.qii.weiciyuan.dao.show.ShowUserDao;
 import org.qii.weiciyuan.dao.user.RemarkDao;
 import org.qii.weiciyuan.support.database.FilterDBTask;
+import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.error.ErrorCode;
 import org.qii.weiciyuan.support.error.WeiboException;
 import org.qii.weiciyuan.support.lib.AppFragmentPagerAdapter;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
-import org.qii.weiciyuan.support.lib.MyViewPager;
-import org.qii.weiciyuan.support.lib.SwipeRightToCloseOnGestureListener;
-import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.Utility;
 import org.qii.weiciyuan.ui.interfaces.AbstractAppActivity;
@@ -56,18 +53,14 @@ import java.util.List;
  * Date: 12-8-14
  */
 public class UserInfoActivity extends AbstractAppActivity implements IUserInfo {
+
     private String token;
 
     private UserBean bean;
 
-    private MyViewPager mViewPager = null;
-
     private MyAsyncTask<Void, UserBean, UserBean> followOrUnfollowTask;
 
     private ModifyGroupMemberTask modifyGroupMemberTask;
-
-    private GestureDetector gestureDetector;
-
 
     private static final int REFRESH_LOADER_ID = 0;
 
@@ -153,48 +146,6 @@ public class UserInfoActivity extends AbstractAppActivity implements IUserInfo {
 
     }
 
-    private void buildViewPager() {
-        mViewPager = (MyViewPager) findViewById(R.id.viewpager);
-        TimeLinePagerAdapter adapter = new TimeLinePagerAdapter(getSupportFragmentManager());
-        mViewPager.setAdapter(adapter);
-        mViewPager.setOverScrollMode(View.OVER_SCROLL_NEVER);
-        gestureDetector = new GestureDetector(UserInfoActivity.this
-                , new SwipeRightToCloseOnGestureListener(UserInfoActivity.this, mViewPager));
-        mViewPager.setGestureDetector(this, gestureDetector);
-        getWindow().setBackgroundDrawable(getResources().getDrawable(R.color.transparent));
-    }
-
-    class TimeLinePagerAdapter extends AppFragmentPagerAdapter {
-
-        List<Fragment> list = new ArrayList<Fragment>();
-        List<String> tagList = new ArrayList<String>();
-
-        public TimeLinePagerAdapter(FragmentManager fm) {
-            super(fm);
-            Fragment fragment = fm.findFragmentByTag(NewUserInfoFragment.class.getName());
-            if (fragment == null) {
-                fragment = new NewUserInfoFragment(getUser(), getToken());
-            }
-            list.add(fragment);
-            tagList.add(NewUserInfoFragment.class.getName());
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return list.get(position);
-        }
-
-        @Override
-        protected String getTag(int position) {
-            return tagList.get(position);
-        }
-
-        @Override
-        public int getCount() {
-            return list.size();
-        }
-    }
-
     private boolean isMyselfProfile() {
         boolean screenNameEqualCurrentAccount = bean.getScreen_name() != null
                 && bean.getScreen_name().equals(GlobalContext.getInstance().getCurrentAccountName());
@@ -211,7 +162,8 @@ public class UserInfoActivity extends AbstractAppActivity implements IUserInfo {
     }
 
     private void initLayout() {
-//        getWindow().setBackgroundDrawable(getResources().getDrawable(R.color.transparent));
+        setContentView(R.layout.userinfoactivity_layout);
+        getWindow().setBackgroundDrawable(getResources().getDrawable(R.color.transparent));
 
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setDisplayShowHomeEnabled(false);
@@ -222,12 +174,13 @@ public class UserInfoActivity extends AbstractAppActivity implements IUserInfo {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-//                if (getSupportFragmentManager().findFragmentByTag(NewUserInfoFragment.class.getName()) == null) {
-//                    getSupportFragmentManager().beginTransaction()
-//                            .replace(android.R.id.content, new NewUserInfoFragment(getUser(), getToken()), NewUserInfoFragment.class.getName())
-//                            .commit();
-//                }
-                buildViewPager();
+                if (getSupportFragmentManager().findFragmentByTag(NewUserInfoFragment.class.getName()) == null) {
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.content, new NewUserInfoFragment(getUser(), getToken()), NewUserInfoFragment.class.getName())
+                            .commit();
+                    getSupportFragmentManager().executePendingTransactions();
+
+                }
             }
         });
 

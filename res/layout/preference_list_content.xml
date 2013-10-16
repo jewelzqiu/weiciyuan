@@ -6,7 +6,6 @@
     android:paddingTop="0dip"
     android:paddingStart="@dimen/preference_fragment_padding_side"
     android:paddingEnd="@dimen/preference_fragment_padding_side"
-    android:scrollbarStyle="@integer/preference_fragment_scrollbarStyle"
     android:clipToPadding="false"
     android:drawSelectorOnTop="false"
     android:scrollbarAlwaysDrawVerticalTrack="true" >

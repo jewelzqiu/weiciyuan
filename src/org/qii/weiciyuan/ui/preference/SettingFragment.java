@@ -81,7 +81,7 @@ public class SettingFragment extends ListFragment implements MainTimeLineActivit
         mPreferenceManager = onCreatePreferenceManager();
         lv = (ListView) LayoutInflater.from(getActivity()).inflate(
                 R.layout.preference_list_content, null);
-//        lv.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        lv.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
         addPreferencesFromResource(xmlId);
         postBindPreferences();
 //        ((OnPreferenceAttachedListener) getActivity()).onPreferenceAttached(
