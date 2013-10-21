@@ -31,3 +31,5 @@ ant.properties
 *.iws
 .idea/
 weiciyuan.iml
+build.xml
+project.properties
