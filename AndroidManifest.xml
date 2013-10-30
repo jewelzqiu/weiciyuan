@@ -41,7 +41,7 @@
             <!--android:value="AIzaSyA4uHujfcrs9oe0bkJkrQDxYrSUcfYjRl4"/>-->
 
         <activity
-            android:name=".ui.login.DummyActivity"
+            android:name=".ui.login.AccountActivity"
             android:uiOptions="splitActionBarWhenNarrow">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -50,21 +50,19 @@
         </activity>
 
         <!-- login activity -->
-        <activity
-            android:name=".ui.login.AccountActivity"
-            android:uiOptions="splitActionBarWhenNarrow"/>
+
         <activity android:name=".ui.login.OAuthActivity"/>
         <activity android:name=".ui.login.SSOActivity"/>
 
         <!--main activity -->
         <activity
             android:name=".ui.main.MainTimeLineActivity"
-
-            android:launchMode="singleTop"/>
+            android:launchMode="singleTask"/>
 
         <!--send activity -->
         <activity
             android:name=".ui.send.WriteWeiboActivity"
+            android:launchMode="singleTop"
             android:windowSoftInputMode="stateVisible|adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
@@ -106,7 +104,7 @@
             android:theme="@style/GalleryTheme"
             android:launchMode="singleTop"/>
         <activity
-            android:name=".ui.browser.BrowserLocalPicActivity"
+            android:name=".ui.browser.BrowserWriteWeiboLocalPicActivity"
             android:uiOptions="splitActionBarWhenNarrow"
             android:launchMode="singleTop"/>
         <activity
