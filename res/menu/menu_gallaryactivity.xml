@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_copy"
+        android:title="@string/copy_link_to_clipboard"
+        android:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_share"
+        android:title="@string/share"
+        android:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_save"
+        android:title="@string/save_pic_album"
+        android:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_open_with_other_app"
+        android:title="@string/open_with_other_app"
+        android:showAsAction="never"/>
+</menu>

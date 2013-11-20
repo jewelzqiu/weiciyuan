@@ -58,6 +58,8 @@ public class GalleryActivity extends Activity {
 
     private TextView position;
 
+    private int currentPos;
+
     private HashMap<String, PicSimpleBitmapWorkerTask> taskMap = new HashMap<String, PicSimpleBitmapWorkerTask>();
 
     private PicSaveTask saveTask;
@@ -105,6 +107,52 @@ public class GalleryActivity extends Activity {
         pager.setCurrentItem(getIntent().getIntExtra("position", 0));
         pager.setOffscreenPageLimit(1);
         pager.setPageTransformer(true, new ZoomOutPageTransformer());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu_gallaryactivity, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+        String url = urls.get(currentPos);
+        String filePath = FileManager.getFilePathFromUrl(
+                urls.get(currentPos), FileLocationMethod.picture_large);
+        switch (item.getItemId()) {
+            case R.id.menu_copy:
+                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                cm.setPrimaryClip(ClipData.newPlainText("sinaweibo", url));
+                Toast.makeText(GalleryActivity.this, getString(R.string.copy_successfully), Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.menu_share:
+                Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+                sharingIntent.setType("image/jpeg");
+                if (!TextUtils.isEmpty(filePath)) {
+                    Uri uri = Uri.fromFile(new File(filePath));
+                    sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                    if (Utility.isIntentSafe(GalleryActivity.this, sharingIntent)) {
+                        startActivity(Intent.createChooser(sharingIntent, getString(R.string.share)));
+                    }
+                }
+                break;
+            case R.id.menu_save:
+                saveBitmapToPictureDir(filePath);
+                break;
+            case R.id.menu_open_with_other_app:
+                File file = new File(filePath);
+                if (file != null && file.isFile()) {
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.fromFile(file), "image/*");
+                    startActivity(intent);
+                }
+                break;
+        }
+        return true;
     }
 
     @Override
@@ -245,6 +293,8 @@ public class GalleryActivity extends Activity {
         @Override
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
+            currentPos = position;
+
             View contentView = (View) object;
             if (contentView == null)
                 return;
@@ -667,7 +717,12 @@ public class GalleryActivity extends Activity {
             @Override
             public boolean onLongClick(View v) {
 
-                String[] values = {getString(R.string.copy_link_to_clipboard), getString(R.string.share), getString(R.string.save_pic_album)};
+                String[] values = {
+                        getString(R.string.copy_link_to_clipboard),
+                        getString(R.string.share),
+                        getString(R.string.save_pic_album),
+                        getString(R.string.open_with_other_app)
+                };
 
                 new AlertDialog.Builder(GalleryActivity.this)
                         .setItems(values, new DialogInterface.OnClickListener() {
@@ -692,6 +747,15 @@ public class GalleryActivity extends Activity {
                                         break;
                                     case 2:
                                         saveBitmapToPictureDir(filePath);
+                                        break;
+                                    case 3:
+                                        File file = new File(filePath);
+                                        if (file != null && file.isFile()) {
+                                            Intent intent = new Intent();
+                                            intent.setAction(Intent.ACTION_VIEW);
+                                            intent.setDataAndType(Uri.fromFile(file), "image/*");
+                                            startActivity(intent);
+                                        }
                                         break;
                                 }
                             }
