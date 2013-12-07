@@ -12,6 +12,7 @@
 bin/
 gen/
 out/
+build/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -33,3 +34,9 @@ proguard-project.txt
 *.iws
 .idea/
 weiciyuan.iml
+
+# Android Studio files
+.gradle
+gradle/
+gradlew
+gradlew.bat

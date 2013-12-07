@@ -39,15 +39,9 @@
         android:value="AIzaSyDu1MZgPHudQrM4OBt6vbp7McDhLH6wkwU"/>
 
         <!-- this is release key-->
-<<<<<<< HEAD
         <!--<meta-data-->
             <!--android:name="com.google.android.maps.v2.API_KEY"-->
             <!--android:value="AIzaSyA4uHujfcrs9oe0bkJkrQDxYrSUcfYjRl4"/>-->
-=======
-        <meta-data
-                android:name="com.google.android.maps.v2.API_KEY"
-                android:value="AIzaSyA_Ozn9WNG58ImFlmOFOItHvn1JShWvIpE"/>
->>>>>>> 8b2a84052925f2ec6e57032566fe86697460b898
 
         <activity
                 android:name=".ui.login.AccountActivity"
@@ -102,21 +96,12 @@
                 android:uiOptions="splitActionBarWhenNarrow"
                 android:label="@string/detail"/>
         <activity
-<<<<<<< HEAD
-            android:name=".ui.browser.BrowserCommentActivity"
-            android:label="@string/comment_detail"/>
-        <!--<activity-->
-            <!--android:name=".ui.browser.BrowserBigPicActivity"-->
-            <!--android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar"-->
-            <!--android:launchMode="singleTop"/>-->
-=======
                 android:name=".ui.browser.BrowserCommentActivity"
                 android:label="@string/comment_detail"/>
         <activity
                 android:name=".support.gallery.GalleryActivity"
                 android:theme="@style/GalleryTheme"
                 android:launchMode="singleTop"/>
->>>>>>> 8b2a84052925f2ec6e57032566fe86697460b898
         <activity
                 android:name=".ui.browser.BrowserWriteWeiboLocalPicActivity"
                 android:uiOptions="splitActionBarWhenNarrow"
