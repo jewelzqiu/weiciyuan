@@ -25,6 +25,7 @@ import java.util.List;
  * Date: 13-6-21
  */
 public class UserTimeLineActivity extends AbstractAppActivity implements IUserInfo {
+
     private UserBean bean;
     private String token;
     private MyViewPager mViewPager;
@@ -50,9 +51,12 @@ public class UserTimeLineActivity extends AbstractAppActivity implements IUserIn
         token = getIntent().getStringExtra("token");
         bean = (UserBean) getIntent().getParcelableExtra("user");
         getActionBar().setTitle(bean.getScreen_name());
-//        if (getSupportFragmentManager().findFragmentByTag(StatusesByIdTimeLineFragment.class.getName()) == null) {
+//        if (getSupportFragmentManager()
+//                .findFragmentByTag(StatusesByIdTimeLineFragment.class.getName()) == null) {
 //            getSupportFragmentManager().beginTransaction()
-//                    .replace(android.R.id.content, new StatusesByIdTimeLineFragment(getUser(), token), StatusesByIdTimeLineFragment.class.getName())
+//                    .replace(android.R.id.content,
+//                            new StatusesByIdTimeLineFragment(getUser(), token),
+//                            StatusesByIdTimeLineFragment.class.getName())
 //                    .commit();
 //        }
         buildViewPager();
@@ -63,7 +67,7 @@ public class UserTimeLineActivity extends AbstractAppActivity implements IUserIn
         Intent intent;
         switch (item.getItemId()) {
             case android.R.id.home:
-                intent = new Intent(this, MainTimeLineActivity.class);
+                intent = MainTimeLineActivity.newIntent();
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 return true;
