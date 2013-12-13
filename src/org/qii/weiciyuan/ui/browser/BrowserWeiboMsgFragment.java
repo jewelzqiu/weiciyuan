@@ -540,6 +540,21 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
                         layout.location);
                 geoTask.executeOnExecutor(MyAsyncTask.THREAD_POOL_EXECUTOR);
             }
+            layout.mapView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    double[] coordinates = msg.getGeo().getCoordinates();
+                    Uri uri = Uri.parse(
+                            "https://maps.google.com/maps?q=" + coordinates[0] + ","
+                                    + coordinates[1]);
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                            & Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                    intent.setClassName("com.google.android.apps.maps",
+                            "com.google.android.maps.MapsActivity");
+                    startActivity(intent);
+                }
+            });
         } else {
             layout.mapView.setVisibility(View.GONE);
         }
