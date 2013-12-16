@@ -1,6 +1,28 @@
 package org.qii.weiciyuan.support.utils;
 
-import android.app.*;
+import org.qii.weiciyuan.BuildConfig;
+import org.qii.weiciyuan.R;
+import org.qii.weiciyuan.bean.AccountBean;
+import org.qii.weiciyuan.bean.GeoBean;
+import org.qii.weiciyuan.bean.MessageBean;
+import org.qii.weiciyuan.bean.android.TimeLinePosition;
+import org.qii.weiciyuan.othercomponent.unreadnotification.NotificationServiceHelper;
+import org.qii.weiciyuan.support.file.FileLocationMethod;
+import org.qii.weiciyuan.support.file.FileManager;
+import org.qii.weiciyuan.support.lib.AutoScrollListView;
+import org.qii.weiciyuan.support.lib.MyAsyncTask;
+import org.qii.weiciyuan.support.settinghelper.SettingUtility;
+import org.qii.weiciyuan.ui.blackmagic.BlackMagicActivity;
+import org.qii.weiciyuan.ui.login.AccountActivity;
+import org.qii.weiciyuan.ui.login.OAuthActivity;
+import org.qii.weiciyuan.ui.login.SSOActivity;
+
+import android.app.ActionBar;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,36 +46,25 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
-import android.view.*;
+import android.view.Display;
+import android.view.HapticFeedbackConstants;
+import android.view.MotionEvent;
+import android.view.SoundEffectConstants;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ShareActionProvider;
 import android.widget.TextView;
 
-import org.qii.weiciyuan.BuildConfig;
-import org.qii.weiciyuan.R;
-import org.qii.weiciyuan.bean.AccountBean;
-import org.qii.weiciyuan.bean.GeoBean;
-import org.qii.weiciyuan.bean.MessageBean;
-import org.qii.weiciyuan.bean.android.TimeLinePosition;
-import org.qii.weiciyuan.othercomponent.unreadnotification.NotificationServiceHelper;
-import org.qii.weiciyuan.support.file.FileLocationMethod;
-import org.qii.weiciyuan.support.file.FileManager;
-import org.qii.weiciyuan.support.lib.AutoScrollListView;
-import org.qii.weiciyuan.support.lib.MyAsyncTask;
-import org.qii.weiciyuan.support.settinghelper.SettingUtility;
-import org.qii.weiciyuan.ui.blackmagic.BlackMagicActivity;
-import org.qii.weiciyuan.ui.login.AccountActivity;
-import org.qii.weiciyuan.ui.login.OAuthActivity;
-import org.qii.weiciyuan.ui.login.SSOActivity;
-
-import javax.microedition.khronos.opengles.GL10;
-import javax.microedition.khronos.opengles.GL11;
-
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -64,6 +75,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import javax.microedition.khronos.opengles.GL10;
+import javax.microedition.khronos.opengles.GL11;
 
 
 public class Utility {
@@ -362,6 +376,10 @@ public class Utility {
         return android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
     }
 
+    public static boolean isKK() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+    }
+
     public static int getScreenWidth() {
         Activity activity = GlobalContext.getInstance().getActivity();
         if (activity != null) {
@@ -383,6 +401,37 @@ public class Utility {
             return metrics.heightPixels;
         }
         return 800;
+    }
+
+    public static String getLatestCameraPicture(Activity activity) {
+        String[] projection = new String[]{MediaStore.Images.ImageColumns._ID,
+                MediaStore.Images.ImageColumns.DATA,
+                MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+                MediaStore.Images.ImageColumns.DATE_TAKEN,
+                MediaStore.Images.ImageColumns.MIME_TYPE
+        };
+        final Cursor cursor = activity.getContentResolver()
+                .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        projection, null, null,
+                        MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC");
+        if (cursor.moveToFirst()) {
+            String path = cursor.getString(1);
+            return path;
+        }
+        return null;
+    }
+
+    public static void copyFile(InputStream in, File destFile) throws IOException {
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(in);
+        FileOutputStream outputStream = new FileOutputStream(destFile);
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = bufferedInputStream.read(buffer)) != -1) {
+            bufferedOutputStream.write(buffer, 0, len);
+        }
+        closeSilently(bufferedInputStream);
+        closeSilently(bufferedOutputStream);
     }
 
     public static Rect locateView(View v) {
@@ -501,12 +550,16 @@ public class Utility {
     }
 
     public static String getIdFromWeiboAccountLink(String url) {
+
+        url = convertWeiboCnToWeiboCom(url);
+
         String id = url.substring("http://weibo.com/u/".length());
         id = id.replace("/", "");
         return id;
     }
 
     public static String getDomainFromWeiboAccountLink(String url) {
+        url = convertWeiboCnToWeiboCom(url);
 
         final String NORMAL_DOMAIN_PREFIX = "http://weibo.com/";
         final String ENTERPRISE_DOMAIN_PREFIX = "http://e.weibo.com/";
@@ -533,6 +586,8 @@ public class Utility {
     }
 
     public static boolean isWeiboAccountIdLink(String url) {
+        url = convertWeiboCnToWeiboCom(url);
+
         return !TextUtils.isEmpty(url) && url.startsWith("http://weibo.com/u/");
     }
 
@@ -541,6 +596,7 @@ public class Utility {
         if (TextUtils.isEmpty(url)) {
             return false;
         } else {
+            url = convertWeiboCnToWeiboCom(url);
             boolean a = url.startsWith("http://weibo.com/") || url
                     .startsWith("http://e.weibo.com/");
             boolean b = !url.contains("?");
@@ -566,7 +622,7 @@ public class Utility {
         if (TextUtils.isEmpty(url)) {
             return false;
         } else {
-
+            url = convertWeiboCnToWeiboCom(url);
             boolean urlValide = url.startsWith("http://www.weibo.com/");
 
             if (!urlValide) {
@@ -589,6 +645,8 @@ public class Utility {
 
 
     public static String getMidFromUrl(String url) {
+        url = convertWeiboCnToWeiboCom(url);
+
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
         }
@@ -596,6 +654,13 @@ public class Utility {
         url = url.substring("http://www.weibo.com/".length(), url.length());
 
         return url.split("/")[1];
+    }
+
+    private static String convertWeiboCnToWeiboCom(String url) {
+        if (!TextUtils.isEmpty(url) && url.startsWith("http://weibo.cn")) {
+            url = url.replace("http://weibo.cn", "http://weibo.com");
+        }
+        return url;
     }
 
     public static void vibrate(Context context, View view) {

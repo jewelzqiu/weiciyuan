@@ -31,7 +31,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
@@ -72,6 +71,9 @@ public class WriteWeiboActivity extends AbstractAppActivity
     private static final int CAMERA_RESULT = 0;
 
     private static final int PIC_RESULT = 1;
+
+    private static final int PIC_RESULT_KK = 2;
+
 
     public static final int AT_USER = 3;
 
@@ -152,27 +154,18 @@ public class WriteWeiboActivity extends AbstractAppActivity
 
         switch (which) {
             case 0:
-                String[] projection = new String[]{MediaStore.Images.ImageColumns._ID,
-                        MediaStore.Images.ImageColumns.DATA,
-                        MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-                        MediaStore.Images.ImageColumns.DATE_TAKEN,
-                        MediaStore.Images.ImageColumns.MIME_TYPE
-                };
-                final Cursor cursor = managedQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        projection, null, null,
-                        MediaStore.Images.ImageColumns.DATE_TAKEN + " DESC");
-                if (cursor.moveToFirst()) {
-                    String path = cursor.getString(1);
-                    if (!TextUtils.isEmpty(path)) {
-                        picPath = path;
-                        enablePicture();
-                        if (TextUtils.isEmpty(content.getText().toString())) {
-                            content.setText(getString(R.string.share_pic));
-                            content.setSelection(content.getText().toString().length());
-                        }
-                        break;
+
+                String path = Utility.getLatestCameraPicture(WriteWeiboActivity.this);
+                if (!TextUtils.isEmpty(path)) {
+                    picPath = path;
+                    enablePicture();
+                    if (TextUtils.isEmpty(content.getText().toString())) {
+                        content.setText(getString(R.string.share_pic));
+                        content.setSelection(content.getText().toString().length());
                     }
+                    return;
                 }
+
                 Toast.makeText(WriteWeiboActivity.this,
                         getString(R.string.dont_have_the_last_picture), Toast.LENGTH_SHORT).show();
 
@@ -198,9 +191,16 @@ public class WriteWeiboActivity extends AbstractAppActivity
                 }
                 break;
             case 2:
-                Intent choosePictureIntent = new Intent(Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(choosePictureIntent, PIC_RESULT);
+                if (Utility.isKK()) {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, PIC_RESULT_KK);
+                } else {
+                    Intent choosePictureIntent = new Intent(Intent.ACTION_PICK,
+                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(choosePictureIntent, PIC_RESULT);
+                }
                 break;
         }
     }
@@ -226,7 +226,6 @@ public class WriteWeiboActivity extends AbstractAppActivity
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case CAMERA_RESULT:
@@ -244,9 +243,13 @@ public class WriteWeiboActivity extends AbstractAppActivity
                         content.setSelection(content.getText().toString().length());
                     }
 
-                    Uri imageFileUri = intent.getData();
-                    picPath = Utility.getPicPathFromUri(imageFileUri, this);
+                    picPath = Utility.getPicPathFromUri(intent.getData(), this);
                     enablePicture();
+                    break;
+                case PIC_RESULT_KK:
+                    ConvertKKUriToPathFragment fragment = ConvertKKUriToPathFragment
+                            .newInstance(intent.getData());
+                    getSupportFragmentManager().beginTransaction().add(fragment, "").commit();
                     break;
                 case AT_USER:
                     String name = intent.getStringExtra("name");
@@ -268,6 +271,16 @@ public class WriteWeiboActivity extends AbstractAppActivity
         }
 
 
+    }
+
+    public void picConvertSucceedKK(String path) {
+        if (TextUtils.isEmpty(content.getText().toString())) {
+            content.setText(getString(R.string.share_pic));
+            content.setSelection(content.getText().toString().length());
+        }
+
+        picPath = path;
+        enablePicture();
     }
 
 
@@ -997,4 +1010,5 @@ public class WriteWeiboActivity extends AbstractAppActivity
         picPath = "";
         disablePicture();
     }
+
 }

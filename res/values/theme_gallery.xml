@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="GalleryTheme" parent="@android:style/Theme.Holo.NoActionBar">
+    <style name="CommonGalleryTheme" parent="@android:style/Theme.Holo.NoActionBar">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowFrame">@null</item>
@@ -10,9 +10,11 @@
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowIsTranslucent">true</item>
 
-
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowTranslucentStatus">true</item>
+    </style>
+
+    <style name="GalleryTheme" parent="@style/CommonGalleryTheme">
     </style>
 
 </resources>
