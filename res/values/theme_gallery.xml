@@ -9,9 +9,6 @@
 
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowIsTranslucent">true</item>
-
-        <item name="android:windowTranslucentNavigation">true</item>
-        <item name="android:windowTranslucentStatus">true</item>
     </style>
 
     <style name="GalleryTheme" parent="@style/CommonGalleryTheme">
