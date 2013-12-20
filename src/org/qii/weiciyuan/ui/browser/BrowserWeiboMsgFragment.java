@@ -17,7 +17,6 @@ import org.qii.weiciyuan.support.error.WeiboException;
 import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.gallery.GalleryActivity;
 import org.qii.weiciyuan.support.lib.ClickableTextViewMentionLinkOnTouchListener;
-import org.qii.weiciyuan.support.lib.LongClickableLinkMovementMethod;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
 import org.qii.weiciyuan.support.lib.ProfileTopAvatarImageView;
 import org.qii.weiciyuan.support.lib.SwipeFrameLayout;
@@ -107,6 +106,8 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
 
     private View progressHeader;
 
+    private TextView emptyHeader;
+
     private View footerView;
 
     private ActionMode mActionMode;
@@ -118,6 +119,9 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
 
     private RemoveTask removeTask;
 
+    private boolean canLoadOldCommentData = true;
+
+    private boolean canLoadOldRepostData = true;
 
     private static class BrowserWeiboMsgLayout {
 
@@ -153,6 +157,11 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
 
         View count_layout;
 
+    }
+
+    public static BrowserWeiboMsgFragment newInstance(MessageBean msg) {
+        BrowserWeiboMsgFragment fragment = new BrowserWeiboMsgFragment(msg);
+        return fragment;
     }
 
     public BrowserWeiboMsgFragment() {
@@ -298,21 +307,8 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
         SwipeFrameLayout swipeFrameLayout = new SwipeFrameLayout(getActivity());
         PullToRefreshListView pullToRefreshListView = new PullToRefreshListView(getActivity());
         pullToRefreshListView.setMode(PullToRefreshBase.Mode.DISABLED);
-        pullToRefreshListView
-                .setOnLastItemVisibleListener(new PullToRefreshBase.OnLastItemVisibleListener() {
-                    @Override
-                    public void onLastItemVisible() {
-                        if (isCommentList) {
-                            if (msg.getComments_count() > 0 && commentList.getSize() > 0) {
-                                loadOldCommentData();
-                            }
-                        } else {
-                            if (msg.getReposts_count() > 0 && repostList.getSize() > 0) {
-                                loadOldRepostData();
-                            }
-                        }
-                    }
-                });
+        pullToRefreshListView.setOnLastItemVisibleListener(
+                onLastItemVisibleListener);
         pullToRefreshListView.setOnScrollListener(listViewOnScrollListener);
 
         listView = pullToRefreshListView.getRefreshableView();
@@ -337,6 +333,12 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
         progressHeader.setVisibility(View.GONE);
         listView.addHeaderView(progressHeaderLayout);
 
+        View emptyLayout = inflater
+                .inflate(R.layout.browserweibomsgfragment_empty_header, listView, false);
+        emptyHeader = (TextView) emptyLayout.findViewById(R.id.empty_text);
+        emptyHeader.setOnClickListener(new EmptyHeaderOnClickListener());
+        listView.addHeaderView(emptyLayout);
+
         footerView = inflater.inflate(R.layout.listview_footer_layout, null);
         listView.addFooterView(footerView);
         dismissFooterView();
@@ -344,70 +346,9 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
         repostTab = (TextView) switchView.findViewById(R.id.repost);
         commentTab = (TextView) switchView.findViewById(R.id.comment);
 
-        repostTab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listView.setOnItemClickListener(repostOnItemClickListener);
-                listView.setOnItemLongClickListener(repostOnItemLongClickListener);
+        repostTab.setOnClickListener(new RepostTabOnClickListener());
+        commentTab.setOnClickListener(new CommentTabOnClickListener());
 
-                resetActionMode();
-
-                dismissFooterView();
-                if (isCommentList) {
-                    isCommentList = false;
-                    adapter.switchToRepostType();
-                    repostTab.setTextColor(ThemeUtility.getColor(
-                            R.attr.browser_weibo_detail_comments_reposts_category_color_selected));
-                    commentTab.setTextColor(ThemeUtility.getColor(
-                            R.attr.browser_weibo_detail_comments_reposts_category_color_unselected));
-                    if (repostList.getSize() == 0) {
-                        loadNewRepostData();
-                    } else {
-                        Loader loader = getLoaderManager().getLoader(NEW_REPOST_LOADER_ID);
-                        if (loader != null) {
-                            progressHeader.setVisibility(View.VISIBLE);
-                        } else {
-                            progressHeader.setVisibility(View.GONE);
-                        }
-                    }
-                } else {
-                    loadNewRepostData();
-                }
-            }
-        });
-
-        commentTab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listView.setOnItemClickListener(commentOnItemClickListener);
-                listView.setOnItemLongClickListener(commentOnItemLongClickListener);
-
-                resetActionMode();
-
-                dismissFooterView();
-                if (!isCommentList) {
-                    isCommentList = true;
-                    adapter.switchToCommentType();
-                    commentTab.setTextColor(ThemeUtility.getColor(
-                            R.attr.browser_weibo_detail_comments_reposts_category_color_selected));
-                    repostTab.setTextColor(ThemeUtility.getColor(
-                            R.attr.browser_weibo_detail_comments_reposts_category_color_unselected));
-
-                    if (commentList.getSize() == 0) {
-                        loadNewCommentData();
-                    } else {
-                        Loader loader = getLoaderManager().getLoader(NEW_COMMENT_LOADER_ID);
-                        if (loader != null) {
-                            progressHeader.setVisibility(View.VISIBLE);
-                        } else {
-                            progressHeader.setVisibility(View.GONE);
-                        }
-                    }
-                } else {
-                    loadNewCommentData();
-                }
-            }
-        });
         commentTab.setTextColor(getResources().getColor(R.color.orange));
         listView.setFooterDividersEnabled(false);
         listView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
@@ -451,36 +392,12 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
         layout.repost_layout = (LinearLayout) view.findViewById(R.id.repost_layout);
     }
 
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        layout.location.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (Utility.isGooglePlaySafe(getActivity())) {
-                    GeoBean bean = msg.getGeo();
-                    Intent intent = new Intent(getActivity(), AppMapActivity.class);
-                    intent.putExtra("lat", bean.getLat());
-                    intent.putExtra("lon", bean.getLon());
-                    if (!String.valueOf(bean.getLat() + "," + bean.getLon())
-                            .equals(layout.location.getText())) {
-                        intent.putExtra("locationStr", layout.location.getText());
-                    }
-                    startActivity(intent);
-                } else {
-                    GeoBean bean = msg.getGeo();
-                    String geoUriString = "geo:" + bean.getLat() + "," + bean.getLon() + "?q="
-                            + layout.location.getText();
-                    Uri geoUri = Uri.parse(geoUriString);
-                    Intent mapCall = new Intent(Intent.ACTION_VIEW, geoUri);
-                    if (Utility.isIntentSafe(getActivity(), mapCall)) {
-                        startActivity(mapCall);
-                    }
-
-                }
-            }
-        });
+        layout.location.setOnClickListener(locationInfoOnClickListener);
         view.findViewById(R.id.first).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -490,28 +407,7 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
                 startActivity(intent);
             }
         });
-        layout.recontent.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                //This condition will satisfy only when it is not an autolinked text
-                //onClick action
-                boolean isNotLink = layout.recontent.getSelectionStart() == -1
-                        && layout.recontent.getSelectionEnd() == -1;
-                boolean isDeleted = msg.getRetweeted_status() == null
-                        || msg.getRetweeted_status().getUser() == null;
-
-                if (isNotLink && !isDeleted) {
-                    startActivity(BrowserWeiboMsgActivity
-                            .newIntent(msg.getRetweeted_status(),
-                                    GlobalContext.getInstance().getSpecialToken()));
-                } else if (isNotLink && isDeleted) {
-                    Toast.makeText(getActivity(), getString(R.string.cant_open_deleted_weibo),
-                            Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
+        layout.recontent.setOnClickListener(repostContentOnClickListener);
     }
 
     public void buildViewData(final boolean refreshPic) {
@@ -782,6 +678,57 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
     }
 
 
+    private View.OnClickListener repostContentOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+            //This condition will satisfy only when it is not an autolinked text
+            //onClick action
+            boolean isNotLink = layout.recontent.getSelectionStart() == -1
+                    && layout.recontent.getSelectionEnd() == -1;
+            boolean isDeleted = msg.getRetweeted_status() == null
+                    || msg.getRetweeted_status().getUser() == null;
+
+            if (isNotLink && !isDeleted) {
+                startActivity(BrowserWeiboMsgActivity
+                        .newIntent(msg.getRetweeted_status(),
+                                GlobalContext.getInstance().getSpecialToken()));
+            } else if (isNotLink && isDeleted) {
+                Toast.makeText(getActivity(), getString(R.string.cant_open_deleted_weibo),
+                        Toast.LENGTH_SHORT).show();
+            }
+
+        }
+    };
+
+    private View.OnClickListener locationInfoOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (Utility.isGooglePlaySafe(getActivity())) {
+                GeoBean bean = msg.getGeo();
+                Intent intent = new Intent(getActivity(), AppMapActivity.class);
+                intent.putExtra("lat", bean.getLat());
+                intent.putExtra("lon", bean.getLon());
+                if (!String.valueOf(bean.getLat() + "," + bean.getLon())
+                        .equals(layout.location.getText())) {
+                    intent.putExtra("locationStr", layout.location.getText());
+                }
+                startActivity(intent);
+            } else {
+                GeoBean bean = msg.getGeo();
+                String geoUriString = "geo:" + bean.getLat() + "," + bean.getLon() + "?q="
+                        + layout.location.getText();
+                Uri geoUri = Uri.parse(geoUriString);
+                Intent mapCall = new Intent(Intent.ACTION_VIEW, geoUri);
+                if (Utility.isIntentSafe(getActivity(), mapCall)) {
+                    startActivity(mapCall);
+                }
+
+            }
+        }
+    };
+
+
     private AdapterView.OnItemLongClickListener repostOnItemLongClickListener
             = new AdapterView.OnItemLongClickListener() {
         @Override
@@ -883,57 +830,186 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
         }
     };
 
+    private PullToRefreshBase.OnLastItemVisibleListener onLastItemVisibleListener
+            = new PullToRefreshBase.OnLastItemVisibleListener() {
+        @Override
+        public void onLastItemVisible() {
+            if (isCommentList) {
+                if (msg.getComments_count() > 0 && commentList.getSize() > 0) {
+                    loadOldCommentData();
+                }
+            } else {
+                if (msg.getReposts_count() > 0 && repostList.getSize() > 0) {
+                    loadOldRepostData();
+                }
+            }
+        }
+    };
+
     private AbsListView.OnScrollListener listViewOnScrollListener
             = new AbsListView.OnScrollListener() {
         @Override
         public void onScrollStateChanged(AbsListView view, int scrollState) {
-            switch (scrollState) {
-                case AbsListView.OnScrollListener.SCROLL_STATE_IDLE:
 
-                    LongClickableLinkMovementMethod.getInstance().setLongClickable(true);
-                    TimeLineBitmapDownloader.getInstance().setPauseDownloadWork(false);
-                    TimeLineBitmapDownloader.getInstance().setPauseReadWork(false);
-
-                    break;
-                case AbsListView.OnScrollListener.SCROLL_STATE_FLING:
-                    LongClickableLinkMovementMethod.getInstance().setLongClickable(false);
-                    TimeLineBitmapDownloader.getInstance().setPauseDownloadWork(true);
-                    TimeLineBitmapDownloader.getInstance().setPauseReadWork(true);
-                    break;
-                case AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL:
-                    LongClickableLinkMovementMethod.getInstance().setLongClickable(false);
-                    TimeLineBitmapDownloader.getInstance().setPauseDownloadWork(true);
-                    break;
-            }
         }
 
         @Override
         public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount,
                 int totalItemCount) {
-            LongClickableLinkMovementMethod.getInstance().removeLongClickCallback();
+
+            if (hasActionMode()) {
+                int position = getListView().getCheckedItemPosition();
+                if (getListView().getFirstVisiblePosition() > position
+                        || getListView().getLastVisiblePosition() < position) {
+                    clearActionMode();
+                }
+            }
+
+            if (getListView().getLastVisiblePosition() > 7
+                    && getListView().getFirstVisiblePosition() != getListView()
+                    .getHeaderViewsCount()) {
+
+                if (isCommentList) {
+
+                    if (getListView().getLastVisiblePosition() > commentList.getSize() - 3) {
+                        loadOldCommentData();
+                    }
+                } else {
+                    if (getListView().getLastVisiblePosition() > repostList.getSize() - 3) {
+                        loadOldRepostData();
+                    }
+                }
+            }
         }
     };
 
+    private class EmptyHeaderOnClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+            if (isCommentList) {
+                loadNewCommentData();
+            } else {
+                loadNewRepostData();
+            }
+        }
+    }
+
+    private class RepostTabOnClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+            listView.setOnItemClickListener(repostOnItemClickListener);
+            listView.setOnItemLongClickListener(repostOnItemLongClickListener);
+            emptyHeader.setText(R.string.repost_is_empty);
+            resetActionMode();
+
+            dismissFooterView();
+            if (isCommentList) {
+                isCommentList = false;
+                adapter.switchToRepostType();
+                repostTab.setTextColor(ThemeUtility.getColor(
+                        R.attr.browser_weibo_detail_comments_reposts_category_color_selected));
+                commentTab.setTextColor(ThemeUtility.getColor(
+                        R.attr.browser_weibo_detail_comments_reposts_category_color_unselected));
+                if (repostList.getSize() == 0) {
+                    loadNewRepostData();
+                } else {
+                    Loader loader = getLoaderManager().getLoader(NEW_REPOST_LOADER_ID);
+                    if (loader != null) {
+                        progressHeader.setVisibility(View.VISIBLE);
+                    } else {
+                        progressHeader.setVisibility(View.GONE);
+                    }
+                }
+            } else {
+                loadNewRepostData();
+            }
+
+            if (repostList.getSize() > 0) {
+                emptyHeader.setVisibility(View.GONE);
+            } else {
+                emptyHeader.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    private class CommentTabOnClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+            listView.setOnItemClickListener(commentOnItemClickListener);
+            listView.setOnItemLongClickListener(commentOnItemLongClickListener);
+            emptyHeader.setText(R.string.comment_is_empty);
+            resetActionMode();
+
+            dismissFooterView();
+            if (!isCommentList) {
+                isCommentList = true;
+                adapter.switchToCommentType();
+                commentTab.setTextColor(ThemeUtility.getColor(
+                        R.attr.browser_weibo_detail_comments_reposts_category_color_selected));
+                repostTab.setTextColor(ThemeUtility.getColor(
+                        R.attr.browser_weibo_detail_comments_reposts_category_color_unselected));
+
+                if (commentList.getSize() == 0) {
+                    loadNewCommentData();
+                } else {
+                    Loader loader = getLoaderManager().getLoader(NEW_COMMENT_LOADER_ID);
+                    if (loader != null) {
+                        progressHeader.setVisibility(View.VISIBLE);
+                    } else {
+                        progressHeader.setVisibility(View.GONE);
+                    }
+                }
+            } else {
+                loadNewCommentData();
+            }
+
+            if (commentList.getSize() > 0) {
+                emptyHeader.setVisibility(View.GONE);
+            } else {
+                emptyHeader.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
 
     public void loadNewCommentData() {
+        canLoadOldCommentData = true;
+        if (getLoaderManager().getLoader(NEW_COMMENT_LOADER_ID) != null) {
+            return;
+        }
         progressHeader.setVisibility(View.VISIBLE);
         getLoaderManager().destroyLoader(OLD_COMMENT_LOADER_ID);
         getLoaderManager().restartLoader(NEW_COMMENT_LOADER_ID, null, commentMsgCallback);
     }
 
     public void loadNewRepostData() {
+        canLoadOldRepostData = true;
+        if (getLoaderManager().getLoader(NEW_REPOST_LOADER_ID) != null) {
+            return;
+        }
         progressHeader.setVisibility(View.VISIBLE);
         getLoaderManager().destroyLoader(OLD_REPOST_LOADER_ID);
         getLoaderManager().restartLoader(NEW_REPOST_LOADER_ID, null, repostMsgCallback);
     }
 
     public void loadOldCommentData() {
+        if (getLoaderManager().getLoader(OLD_COMMENT_LOADER_ID) != null || !canLoadOldCommentData) {
+            return;
+        }
         showFooterView();
         getLoaderManager().destroyLoader(NEW_COMMENT_LOADER_ID);
         getLoaderManager().restartLoader(OLD_COMMENT_LOADER_ID, null, commentMsgCallback);
     }
 
     public void loadOldRepostData() {
+        if (getLoaderManager().getLoader(OLD_REPOST_LOADER_ID) != null
+                || !canLoadOldRepostData) {
+            return;
+        }
+        showFooterView();
         getLoaderManager().destroyLoader(NEW_REPOST_LOADER_ID);
         getLoaderManager().restartLoader(OLD_REPOST_LOADER_ID, null, repostMsgCallback);
     }
@@ -993,6 +1069,12 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
                             adapter.notifyDataSetChanged();
 
                         }
+
+                        if (commentList.getSize() > 0 && isCommentList) {
+                            emptyHeader.setVisibility(View.GONE);
+                        } else if (isCommentList) {
+                            emptyHeader.setVisibility(View.VISIBLE);
+                        }
                     }
                     break;
                 case OLD_COMMENT_LOADER_ID:
@@ -1002,6 +1084,11 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
                                 .show();
                         showErrorFooterView();
                     } else {
+                        if (data != null && data.getSize() <= 1) {
+                            canLoadOldCommentData = false;
+                        } else {
+                            canLoadOldCommentData = true;
+                        }
                         dismissFooterView();
                         commentList.addOldData(data);
                         adapter.notifyDataSetChanged();
@@ -1071,6 +1158,12 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
                             adapter.notifyDataSetChanged();
 
                         }
+
+                        if (repostList.getSize() > 0 && !isCommentList) {
+                            emptyHeader.setVisibility(View.GONE);
+                        } else if (!isCommentList) {
+                            emptyHeader.setVisibility(View.VISIBLE);
+                        }
                     }
                     break;
                 case OLD_REPOST_LOADER_ID:
@@ -1078,7 +1171,14 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
                     if (Utility.isAllNotNull(exception)) {
                         Toast.makeText(getActivity(), exception.getError(), Toast.LENGTH_SHORT)
                                 .show();
+                        showErrorFooterView();
                     } else {
+                        if (data != null && data.getSize() <= 1) {
+                            canLoadOldRepostData = false;
+                        } else {
+                            canLoadOldRepostData = true;
+                        }
+                        dismissFooterView();
                         repostList.addOldData(data);
                         adapter.notifyDataSetChanged();
                     }
