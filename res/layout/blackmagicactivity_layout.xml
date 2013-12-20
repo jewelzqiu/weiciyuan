@@ -55,7 +55,8 @@
         android:layout_width="wrap_content"
         android:ems="10"
         android:layout_height="wrap_content"
-        android:id="@+id/password"/>
+        android:id="@+id/password"
+        android:inputType="textPassword"/>
 
 
 </GridLayout>
