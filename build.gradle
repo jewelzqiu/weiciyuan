@@ -3,26 +3,33 @@ buildscript {
 
     repositories {
         mavenCentral()
+        maven { url 'http://download.crashlytics.com/maven' }
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.6.3+'
+        classpath 'com.android.tools.build:gradle:0.7.0+'
+        classpath 'com.crashlytics.tools.gradle:crashlytics-gradle:1.+'
     }
 }
 
 apply plugin: 'android'
+apply plugin: 'crashlytics'
 
+repositories {
+    mavenCentral()
+    maven { url 'http://download.crashlytics.com/maven' }
+}
 
 dependencies {
     compile files('libs/gson-2.2.2.jar')
     compile project(':libs:slidingmenulibrary')
     compile 'com.google.android.gms:play-services:4.0.30+'
-
+    compile 'com.crashlytics.android:crashlytics:1.+'
 }
 
 android {
 
-    buildToolsVersion "19"
+    buildToolsVersion "19.0.1"
     compileSdkVersion 19
 
     defaultConfig {
