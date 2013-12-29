@@ -283,6 +283,7 @@
     <string name="user_not_exists">用户不存在</string>
     <string name="network_error">网络有问题</string>
     <string name="fetching_user_info">获取用户信息……</string>
+    <string name="following_and_fan_list_tip">注意，不知道新浪是有意的限制或是无意的bug，第三方客户端无法查看到全部的关注和粉丝</string>
 
 
     <!-- serach -->
@@ -523,6 +524,7 @@
     <string name="pref_open_source_license_title">开源协议</string>
     <string name="pref_debug_title">调试</string>
     <string name="pref_debug_mem_title">内存信息</string>
+    <string name="print_license">打印协议</string>
 
 
     <!-- menu-->
@@ -535,6 +537,7 @@
 
     <!--dialog-->
     <string name="something_wrong">出错了！</string>
+    <string name="tip">提示</string>
 
 
     <!--notification-->
