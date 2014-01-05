@@ -384,6 +384,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
 
     @Override
     public void onBackPressed() {
+/*	
         if (getMenuFragment().getCurrentIndex() == LeftMenuFragment.SETTING_INDEX) {
             showMenu();
         } else {
@@ -391,7 +392,10 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
             GlobalContext.getInstance().startedApp = false;
             GlobalContext.getInstance().getBitmapCache().evictAll();
             finish();
-        }
+        }*/
+        super.onBackPressed();
+        GlobalContext.getInstance().getBitmapCache().evictAll();
+        finish();
     }
 
     @Override
@@ -506,9 +510,10 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(newMsgInterruptBroadcastReceiver);
+        Utility.unregisterReceiverIgnoredReceiverNotRegisteredException(this,
+                newMsgInterruptBroadcastReceiver);
         if (musicReceiver != null) {
-            unregisterReceiver(musicReceiver);
+            Utility.unregisterReceiverIgnoredReceiverNotRegisteredException(this, musicReceiver);
         }
 
         if (isFinishing()) {

@@ -7,6 +7,7 @@ import org.qii.weiciyuan.bean.GeoBean;
 import org.qii.weiciyuan.bean.MessageBean;
 import org.qii.weiciyuan.bean.android.TimeLinePosition;
 import org.qii.weiciyuan.othercomponent.unreadnotification.NotificationServiceHelper;
+import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.file.FileManager;
 import org.qii.weiciyuan.support.lib.AutoScrollListView;
@@ -23,11 +24,14 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.pm.Signature;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -73,6 +77,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
@@ -359,6 +365,13 @@ public class Utility {
         return activities.size() > 0;
     }
 
+    public static boolean isSinaWeiboSafe(Activity activity) {
+        Intent mapCall = new Intent("com.sina.weibo.remotessoservice");
+        PackageManager packageManager = activity.getPackageManager();
+        List<ResolveInfo> services = packageManager.queryIntentServices(mapCall, 0);
+        return services.size() > 0;
+    }
+
     public static String buildTabText(int number) {
 
         if (number == 0) {
@@ -626,7 +639,7 @@ public class Utility {
             return false;
         } else {
             url = convertWeiboCnToWeiboCom(url);
-            boolean urlValide = url.startsWith("http://www.weibo.com/") || url
+            boolean urlValide = url.startsWith("http://weibo.com/") || url
                     .startsWith("http://e.weibo.com/");
 
             if (!urlValide) {
@@ -637,8 +650,8 @@ public class Utility {
                 url = url.substring(0, url.length() - 1);
             }
 
-            if (url.contains("http://www.weibo.com/")) {
-                url = url.substring("http://www.weibo.com/".length(), url.length());
+            if (url.contains("http://weibo.com/")) {
+                url = url.substring("http://weibo.com/".length(), url.length());
             } else {
                 url = url.substring("http://e.weibo.com/".length(), url.length());
             }
@@ -659,8 +672,8 @@ public class Utility {
             url = url.substring(0, url.length() - 1);
         }
 
-        if (url.contains("http://www.weibo.com/")) {
-            url = url.substring("http://www.weibo.com/".length(), url.length());
+        if (url.contains("http://weibo.com/")) {
+            url = url.substring("http://weibo.com/".length(), url.length());
         } else {
             url = url.substring("http://e.weibo.com/".length(), url.length());
         }
@@ -669,8 +682,14 @@ public class Utility {
     }
 
     private static String convertWeiboCnToWeiboCom(String url) {
-        if (!TextUtils.isEmpty(url) && url.startsWith("http://weibo.cn")) {
-            url = url.replace("http://weibo.cn", "http://weibo.com");
+        if (!TextUtils.isEmpty(url)) {
+            if (url.startsWith("http://weibo.cn")) {
+                url = url.replace("http://weibo.cn", "http://weibo.com");
+            } else if (url.startsWith("http://www.weibo.com")) {
+                url = url.replace("http://www.weibo.com", "http://weibo.com");
+            } else if (url.startsWith("http://www.weibo.cn")) {
+                url = url.replace("http://www.weibo.cn", "http://weibo.com");
+            }
         }
         return url;
     }
@@ -812,9 +831,8 @@ public class Utility {
             });
         } else if (!currentAccountTokenIsExpired || activity == null) {
 
-            Intent i = new Intent(GlobalContext.getInstance(), AccountActivity.class);
+            Intent i = AccountActivity.newIntent();
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            i.putExtra("launcher", false);
             PendingIntent pendingIntent = PendingIntent
                     .getActivity(GlobalContext.getInstance(), 0, i,
                             PendingIntent.FLAG_UPDATE_CURRENT);
@@ -913,5 +931,57 @@ public class Utility {
 
         return !hasMenuKey && !hasBackKey;
     }
+
+    //if app's certificate md5 is correct, enable Crashlytics crash log platform, you should not modify those md5 values
+    public static boolean isCertificateFingerprintCorrect(Context context) {
+        try {
+            PackageManager pm = context.getPackageManager();
+            String packageName = context.getPackageName();
+            int flags = PackageManager.GET_SIGNATURES;
+
+            PackageInfo packageInfo = pm.getPackageInfo(packageName, flags);
+
+            Signature[] signatures = packageInfo.signatures;
+
+            byte[] cert = signatures[0].toByteArray();
+
+            String strResult = "";
+
+            MessageDigest md;
+
+            md = MessageDigest.getInstance("MD5");
+            md.update(cert);
+            for (byte b : md.digest()) {
+                strResult += Integer.toString(b & 0xff, 16);
+            }
+            strResult = strResult.toUpperCase();
+            //debug
+            if ("606A98FAF73EF658B775CA4EFE4B8427".toUpperCase().equals(strResult)) {
+                return true;
+            }
+            //relaease
+            if ("C96155C3DAD4CA1069808F0BAC813A69".toUpperCase().equals(strResult)) {
+                return true;
+            }
+            AppLogger.e(strResult);
+        } catch (NoSuchAlgorithmException ex) {
+            ex.printStackTrace();
+        } catch (PackageManager.NameNotFoundException ex) {
+            ex.printStackTrace();
+        }
+
+        return false;
+    }
+
+
+    public static void unregisterReceiverIgnoredReceiverNotRegisteredException(Context context,
+            BroadcastReceiver broadcastReceiver) {
+        try {
+            context.getApplicationContext().unregisterReceiver(broadcastReceiver);
+        } catch (IllegalArgumentException receiverNotRegisteredException) {
+            receiverNotRegisteredException.printStackTrace();
+        }
+    }
+
 }
 
