@@ -38,6 +38,7 @@ import org.qii.weiciyuan.support.error.ErrorCode;
 import org.qii.weiciyuan.support.error.WeiboException;
 import org.qii.weiciyuan.support.lib.AppFragmentPagerAdapter;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
+import org.qii.weiciyuan.support.utils.AnimationUtility;
 import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.ThemeUtility;
 import org.qii.weiciyuan.support.utils.Utility;
@@ -149,6 +150,8 @@ public class UserInfoActivity extends AbstractAppActivity implements IUserInfo {
             findViewById(android.R.id.content).setBackgroundDrawable(
                     ThemeUtility.getDrawable(android.R.attr.windowBackground));
         } else {
+            findViewById(android.R.id.content).setBackgroundDrawable(
+                    ThemeUtility.getDrawable(android.R.attr.windowBackground));
             buildContent();
         }
 
@@ -216,14 +219,19 @@ public class UserInfoActivity extends AbstractAppActivity implements IUserInfo {
             public void run() {
                 if (getSupportFragmentManager()
                         .findFragmentByTag(NewUserInfoFragment.class.getName()) == null) {
+                    NewUserInfoFragment userInfoFragment = NewUserInfoFragment
+                            .newInstance(getUser(),
+                                    getToken());
                     getSupportFragmentManager().beginTransaction()
                             .replace(android.R.id.content,
-                                    new NewUserInfoFragment(getUser(), getToken()),
+                                    userInfoFragment,
                                     NewUserInfoFragment.class.getName())
                             .commit();
                     getSupportFragmentManager().executePendingTransactions();
 
-                    findViewById(android.R.id.content).setBackgroundDrawable(null);
+                    AnimationUtility
+                            .translateFragmentY(userInfoFragment, -400, 0, userInfoFragment);
+
                 }
             }
         });

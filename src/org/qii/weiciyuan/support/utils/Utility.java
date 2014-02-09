@@ -10,6 +10,7 @@ import org.qii.weiciyuan.othercomponent.unreadnotification.NotificationServiceHe
 import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.file.FileManager;
+import org.qii.weiciyuan.support.lib.RecordOperationAppBroadcastReceiver;
 import org.qii.weiciyuan.support.lib.AutoScrollListView;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
 import org.qii.weiciyuan.support.settinghelper.SettingUtility;
@@ -24,10 +25,10 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -46,8 +47,11 @@ import android.net.Uri;
 import android.opengl.GLES10;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.AndroidRuntimeException;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Display;
@@ -390,6 +394,10 @@ public class Utility {
 
     public static boolean isJB() {
         return android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
+    }
+
+    public static boolean isJB1() {
+        return android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1;
     }
 
     public static boolean isKK() {
@@ -960,7 +968,7 @@ public class Utility {
                 return true;
             }
             //relaease
-            if ("C96155C3DAD4CA1069808F0BAC813A69".toUpperCase().equals(strResult)) {
+            if ("C96155C3DAD4CA1069808FBAC813A69".toUpperCase().equals(strResult)) {
                 return true;
             }
             AppLogger.e(strResult);
@@ -975,12 +983,35 @@ public class Utility {
 
 
     public static void unregisterReceiverIgnoredReceiverNotRegisteredException(Context context,
-            BroadcastReceiver broadcastReceiver) {
+            RecordOperationAppBroadcastReceiver broadcastReceiver) {
+        if (broadcastReceiver == null || broadcastReceiver.hasUnRegistered() || !broadcastReceiver
+                .hasRegistered()) {
+            return;
+        }
         try {
             context.getApplicationContext().unregisterReceiver(broadcastReceiver);
+            broadcastReceiver.setHasUnRegistered(true);
         } catch (IllegalArgumentException receiverNotRegisteredException) {
             receiverNotRegisteredException.printStackTrace();
         }
+    }
+
+    public static void registerReceiverIgnoredReceiverHasRegisteredHereException(Context context,
+            RecordOperationAppBroadcastReceiver broadcastReceiver, IntentFilter intentFilter) {
+        if (broadcastReceiver == null || broadcastReceiver.hasRegistered()
+                || intentFilter == null) {
+            return;
+        }
+        try {
+            context.getApplicationContext().registerReceiver(broadcastReceiver, intentFilter);
+            broadcastReceiver.setHasRegistered(true);
+        } catch (AndroidRuntimeException receiverHasRegisteredException) {
+            receiverHasRegisteredException.printStackTrace();
+        }
+    }
+
+    public static void runUIActionDelayed(Runnable runnable, long delayMillis) {
+        new Handler(Looper.getMainLooper()).postDelayed(runnable, delayMillis);
     }
 
 }

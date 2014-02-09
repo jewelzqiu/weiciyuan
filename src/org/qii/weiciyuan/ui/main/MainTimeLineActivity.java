@@ -14,6 +14,7 @@ import org.qii.weiciyuan.othercomponent.ConnectionChangeReceiver;
 import org.qii.weiciyuan.support.database.AccountDBTask;
 import org.qii.weiciyuan.support.database.DatabaseManager;
 import org.qii.weiciyuan.support.debug.AppLogger;
+import org.qii.weiciyuan.support.lib.RecordOperationAppBroadcastReceiver;
 import org.qii.weiciyuan.support.lib.LongClickableLinkMovementMethod;
 import org.qii.weiciyuan.support.settinghelper.SettingUtility;
 import org.qii.weiciyuan.support.utils.AppEventAction;
@@ -34,7 +35,6 @@ import org.qii.weiciyuan.ui.userinfo.UserInfoActivity;
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -160,12 +160,6 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
         buildInterface(savedInstanceState);
         Executors.newSingleThreadScheduledExecutor()
                 .schedule(new ClearCacheTask(), 8, TimeUnit.SECONDS);
-    }
-
-
-    private void startListenMusicPlaying() {
-        musicReceiver = new MusicReceiver();
-        registerReceiver(musicReceiver, AppEventAction.getSystemMusicBroadcastFilterAction());
     }
 
 
@@ -422,20 +416,6 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
     }
 
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        IntentFilter filter = new IntentFilter(AppEventAction.NEW_MSG_PRIORITY_BROADCAST);
-        filter.setPriority(1);
-        newMsgInterruptBroadcastReceiver = new NewMsgInterruptBroadcastReceiver();
-        registerReceiver(newMsgInterruptBroadcastReceiver, filter);
-        startListenMusicPlaying();
-        readClipboard();
-        //ensure timeline picture type is correct
-        ConnectionChangeReceiver.judgeNetworkStatus(this);
-    }
-
-
     private void readClipboard() {
         ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData cmContent = cm.getPrimaryClip();
@@ -508,13 +488,28 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter(AppEventAction.NEW_MSG_PRIORITY_BROADCAST);
+        filter.setPriority(1);
+        newMsgInterruptBroadcastReceiver = new NewMsgInterruptBroadcastReceiver();
+        Utility.registerReceiverIgnoredReceiverHasRegisteredHereException(this,
+                newMsgInterruptBroadcastReceiver, filter);
+        musicReceiver = new MusicReceiver();
+        Utility.registerReceiverIgnoredReceiverHasRegisteredHereException(this,
+                musicReceiver,
+                AppEventAction.getSystemMusicBroadcastFilterAction());
+        readClipboard();
+        //ensure timeline picture type is correct
+        ConnectionChangeReceiver.judgeNetworkStatus(this);
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         Utility.unregisterReceiverIgnoredReceiverNotRegisteredException(this,
                 newMsgInterruptBroadcastReceiver);
-        if (musicReceiver != null) {
-            Utility.unregisterReceiverIgnoredReceiverNotRegisteredException(this, musicReceiver);
-        }
+        Utility.unregisterReceiverIgnoredReceiverNotRegisteredException(this, musicReceiver);
 
         if (isFinishing()) {
             saveNavigationPositionToDB();
@@ -629,7 +624,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
     }
 
     //todo
-    private class NewMsgInterruptBroadcastReceiver extends BroadcastReceiver {
+    private class NewMsgInterruptBroadcastReceiver extends RecordOperationAppBroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -641,7 +636,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
         }
     }
 
-    private class MusicReceiver extends BroadcastReceiver {
+    private class MusicReceiver extends RecordOperationAppBroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {

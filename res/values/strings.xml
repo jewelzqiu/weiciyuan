@@ -204,13 +204,14 @@
     <string name="oauth_login">网页授权</string>
     <string name="hack_login">黑魔法授权</string>
     <string name="official_app_login">官方客户端授权</string>
-    <string name="login">登录</string>
-    <string name="logining">登录中</string>
+    <string name="login">授权</string>
+    <string name="logining">授权中</string>
     <string name="email_cant_be_empty">登录邮箱不能为空</string>
     <string name="password_cant_be_empty">密码不能为空</string>
     <string name="login_email">登录邮箱</string>
     <string name="login_password">密码</string>
     <string name="app_key">尾巴</string>
+    <string name="login_failed">授权失败：</string>
 
 
     <!--write comment -->
@@ -526,6 +527,8 @@
     <string name="pref_debug_title">调试</string>
     <string name="pref_debug_mem_title">内存信息</string>
     <string name="print_license">打印协议</string>
+    <string name="pref_make_a_app_crash_title">立刻崩溃</string>
+    <string name="pref_make_a_app_crash_summary">用于检测崩溃统计平台是否能成功收集到崩溃</string>
 
 
     <!-- menu-->

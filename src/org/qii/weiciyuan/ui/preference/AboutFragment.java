@@ -128,9 +128,12 @@ public class AboutFragment extends PreferenceFragment {
 
     }
 
+
     private void detectDebugPreference() {
         Preference debugPreferenceCategory = (PreferenceCategory) findPreference(DEBUG_INFO);
         Preference debugPreference = findPreference(SettingActivity.DEBUG_MEM_INFO);
+        Preference crashPreferenceCategory = findPreference(
+                SettingActivity.CRASH);
 
         if (SettingUtility.isBlackMagicEnabled()) {
 
@@ -147,6 +150,14 @@ public class AboutFragment extends PreferenceFragment {
             String result = "VM Max " + Integer.toString(memoryClass) + "MB";
             debugPreference.setSummary(
                     vmAllocStr + "," + nativeAllocStr + "," + result);
+
+            crashPreferenceCategory.setOnPreferenceClickListener(
+                    new Preference.OnPreferenceClickListener() {
+                        @Override
+                        public boolean onPreferenceClick(Preference preference) {
+                            throw new IllegalArgumentException("about -> crash test");
+                        }
+                    });
         } else {
             PreferenceScreen screen = getPreferenceScreen();
             screen.removePreference(debugPreferenceCategory);

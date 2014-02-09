@@ -1,13 +1,5 @@
 package org.qii.weiciyuan.support.asyncdrawable;
 
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Looper;
-import android.text.TextUtils;
-import android.view.View;
-import android.widget.ImageView;
 import org.qii.weiciyuan.R;
 import org.qii.weiciyuan.bean.MessageBean;
 import org.qii.weiciyuan.bean.UserBean;
@@ -21,6 +13,18 @@ import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.ThemeUtility;
 import org.qii.weiciyuan.ui.basefragment.AbstractTimeLineFragment;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.TextUtils;
+import android.view.View;
+import android.view.animation.Animation;
+import android.widget.ImageView;
+
+import java.util.ArrayList;
+
 /**
  * User: qii
  * Date: 12-12-12
@@ -32,9 +36,11 @@ public class TimeLineBitmapDownloader {
     private Handler handler;
 
     static volatile boolean pauseDownloadWork = false;
+
     static final Object pauseDownloadWorkLock = new Object();
 
     static volatile boolean pauseReadWork = false;
+
     static final Object pauseReadWorkLock = new Object();
 
     private static final Object lock = new Object();
@@ -92,10 +98,11 @@ public class TimeLineBitmapDownloader {
     }
 
     protected Bitmap getBitmapFromMemCache(String key) {
-        if (TextUtils.isEmpty(key))
+        if (TextUtils.isEmpty(key)) {
             return null;
-        else
+        } else {
             return GlobalContext.getInstance().getBitmapCache().get(key);
+        }
     }
 
 
@@ -145,7 +152,8 @@ public class TimeLineBitmapDownloader {
     }
 
 
-    public void displayMultiPicture(IWeiciyuanDrawable view, String picUrl, FileLocationMethod method, AbstractTimeLineFragment fragment) {
+    public void displayMultiPicture(IWeiciyuanDrawable view, String picUrl,
+            FileLocationMethod method, AbstractTimeLineFragment fragment) {
 
         boolean isFling = ((AbstractTimeLineFragment) fragment).isListViewFling();
 
@@ -153,14 +161,16 @@ public class TimeLineBitmapDownloader {
 
     }
 
-    public void displayMultiPicture(IWeiciyuanDrawable view, String picUrl, FileLocationMethod method) {
+    public void displayMultiPicture(IWeiciyuanDrawable view, String picUrl,
+            FileLocationMethod method) {
 
         display(view, picUrl, method, false, true);
 
     }
 
 
-    public void downContentPic(IWeiciyuanDrawable view, MessageBean msg, AbstractTimeLineFragment fragment) {
+    public void downContentPic(IWeiciyuanDrawable view, MessageBean msg,
+            AbstractTimeLineFragment fragment) {
         String picUrl;
 
         boolean isFling = ((AbstractTimeLineFragment) fragment).isListViewFling();
@@ -181,7 +191,9 @@ public class TimeLineBitmapDownloader {
      * timeline will refresh at the time user press back button to display the latest repost count
      * and comment count. But sometimes, weibo detail's pictures are very large that bitmap memory
      * cache has cleared those timeline bitmap to save memory, app have to read bitmap from sd card
-     * again, then app play annoying animation , this method will check whether we should read again or not.
+     * again, then app play annoying animation , this method will check whether we should read
+     * again
+     * or not.
      */
     private boolean shouldReloadPicture(ImageView view, String urlKey) {
         if (urlKey.equals(view.getTag())
@@ -198,11 +210,13 @@ public class TimeLineBitmapDownloader {
         }
     }
 
-    private void displayImageView(final ImageView view, final String urlKey, final FileLocationMethod method, boolean isFling, boolean isMultiPictures) {
+    private void displayImageView(final ImageView view, final String urlKey,
+            final FileLocationMethod method, boolean isFling, boolean isMultiPictures) {
         view.clearAnimation();
 
-        if (!shouldReloadPicture(view, urlKey))
+        if (!shouldReloadPicture(view, urlKey)) {
             return;
+        }
 
         final Bitmap bitmap = getBitmapFromMemCache(urlKey);
         if (bitmap != null) {
@@ -247,18 +261,21 @@ public class TimeLineBitmapDownloader {
     }
 
 
-    private void display(final IWeiciyuanDrawable view, final String urlKey, final FileLocationMethod method, boolean isFling, boolean isMultiPictures) {
+    private void display(final IWeiciyuanDrawable view, final String urlKey,
+            final FileLocationMethod method, boolean isFling, boolean isMultiPictures) {
         view.getImageView().clearAnimation();
 
-        if (!shouldReloadPicture(view.getImageView(), urlKey))
+        if (!shouldReloadPicture(view.getImageView(), urlKey)) {
             return;
+        }
 
         final Bitmap bitmap = getBitmapFromMemCache(urlKey);
         if (bitmap != null) {
             view.setImageBitmap(bitmap);
             view.getImageView().setTag(urlKey);
-            if (view.getProgressBar() != null)
+            if (view.getProgressBar() != null) {
                 view.getProgressBar().setVisibility(View.INVISIBLE);
+            }
             if (view.getImageView().getAlpha() != 1.0f) {
                 view.getImageView().setAlpha(1.0f);
             }
@@ -268,8 +285,9 @@ public class TimeLineBitmapDownloader {
 
             if (isFling) {
                 view.getImageView().setImageResource(defaultPictureResId);
-                if (view.getProgressBar() != null)
+                if (view.getProgressBar() != null) {
                     view.getProgressBar().setVisibility(View.INVISIBLE);
+                }
                 view.setGifFlag(ImageUtility.isThisPictureGif(urlKey));
                 return;
             }
@@ -304,7 +322,6 @@ public class TimeLineBitmapDownloader {
 
     public void totalStopLoadPicture() {
 
-
     }
 
 
@@ -314,8 +331,9 @@ public class TimeLineBitmapDownloader {
         if (bitmapDownloaderTask != null) {
             String bitmapUrl = bitmapDownloaderTask.getUrl();
             if ((bitmapUrl == null) || (!bitmapUrl.equals(url))) {
-                if (bitmapDownloaderTask instanceof MyAsyncTask)
+                if (bitmapDownloaderTask instanceof MyAsyncTask) {
                     ((MyAsyncTask) bitmapDownloaderTask).cancel(true);
+                }
             } else {
                 return false;
             }
@@ -335,9 +353,35 @@ public class TimeLineBitmapDownloader {
         return null;
     }
 
-    public void display(final ImageView imageView, final int width, final int height, final String url, final FileLocationMethod method) {
-        if (TextUtils.isEmpty(url))
+    public void display(final ImageView imageView, final int width, final int height,
+            final String url, final FileLocationMethod method) {
+        ArrayList<ImageView> imageViewArrayList = new ArrayList<ImageView>();
+        imageViewArrayList.add(imageView);
+        display(imageViewArrayList, width, height, url, method, null);
+
+    }
+
+    public void display(final ArrayList<ImageView> imageView, final int width, final int height,
+            final String url, final FileLocationMethod method,
+            final ArrayList<Animation> animations) {
+        if (TextUtils.isEmpty(url)) {
             return;
+        }
+
+        final Bitmap bitmap = getBitmapFromMemCache(url);
+        if (bitmap != null && bitmap.getHeight() == height && bitmap.getWidth() == width) {
+            for (int i = 0; i < imageView.size(); i++) {
+                ImageView imageView1 = imageView.get(i);
+                imageView1.setImageDrawable(
+                        new BitmapDrawable(GlobalContext.getInstance().getResources(),
+                                bitmap));
+                if (animations != null && animations.size() > i) {
+                    Animation animation = animations.get(i);
+                    imageView1.startAnimation(animation);
+                }
+            }
+            return;
+        }
 
         new MyAsyncTask<Void, Bitmap, Bitmap>() {
 
@@ -346,16 +390,31 @@ public class TimeLineBitmapDownloader {
                 Bitmap bitmap = null;
                 boolean downloaded = TaskCache.waitForPictureDownload(
                         url, null, FileManager.getFilePathFromUrl(url, method), method);
-                if (downloaded)
-                    bitmap = ImageUtility.readNormalPic(FileManager.getFilePathFromUrl(url, method), width, height);
+                if (downloaded) {
+                    bitmap = ImageUtility
+                            .readNormalPic(FileManager.getFilePathFromUrl(url, method), width,
+                                    height);
+                }
                 return bitmap;
             }
 
             @Override
             protected void onPostExecute(Bitmap bitmap) {
                 super.onPostExecute(bitmap);
-                if (bitmap != null)
-                    imageView.setImageDrawable(new BitmapDrawable(GlobalContext.getInstance().getResources(), bitmap));
+                if (bitmap != null) {
+                    GlobalContext.getInstance().getBitmapCache().put(url, bitmap);
+                    for (int i = 0; i < imageView.size(); i++) {
+                        ImageView imageView1 = imageView.get(i);
+                        imageView1.setImageDrawable(
+                                new BitmapDrawable(GlobalContext.getInstance().getResources(),
+                                        bitmap));
+                        if (animations != null && animations.size() > i) {
+                            Animation animation = animations.get(i);
+                            imageView1.startAnimation(animation);
+                        }
+                    }
+
+                }
             }
         }.executeOnExecutor(MyAsyncTask.THREAD_POOL_EXECUTOR);
     }
