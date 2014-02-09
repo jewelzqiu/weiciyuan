@@ -3,7 +3,6 @@ package org.qii.weiciyuan.ui.userinfo;
 import org.qii.weiciyuan.R;
 import org.qii.weiciyuan.bean.UserBean;
 import org.qii.weiciyuan.ui.interfaces.AbstractAppActivity;
-import org.qii.weiciyuan.ui.interfaces.IUserInfo;
 import org.qii.weiciyuan.ui.main.MainTimeLineActivity;
 
 import android.content.Intent;
@@ -14,12 +13,11 @@ import android.view.MenuItem;
  * User: qii
  * Date: 12-8-18
  */
-public class MyFavActivity extends AbstractAppActivity implements IUserInfo {
+public class MyFavActivity extends AbstractAppActivity {
 
     private UserBean bean;
 
 
-    @Override
     public UserBean getUser() {
         return bean;
     }
@@ -34,7 +32,7 @@ public class MyFavActivity extends AbstractAppActivity implements IUserInfo {
         if (getSupportFragmentManager().findFragmentByTag(MyFavListFragment.class.getName())
                 == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(android.R.id.content, new MyFavListFragment(),
+                    .replace(android.R.id.content, MyFavListFragment.newInstance(),
                             MyFavListFragment.class.getName())
                     .commit();
         }

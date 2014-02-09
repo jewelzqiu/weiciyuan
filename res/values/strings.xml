@@ -36,6 +36,7 @@
     </string>
     <string name="title_changelog">更新日志</string>
     <string name="changelog_close">关闭</string>
+    <string name="click_to_top_tip">点击空白区域直接返回顶部</string>
 
     <!--emotions-->
     <string name="weibo_emotions">微博表情</string>
@@ -433,6 +434,7 @@
     <string name="start_fetch_msg">开始后台自动获取……</string>
     <string name="frequency">间隔</string>
     <string name="stopped">已终止</string>
+    <string name="you_have_new_unread_count">你有 %s 条新未读消息</string>
 
     <!--Setting Draft-->
     <string name="draft">草稿箱</string>

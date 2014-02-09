@@ -21,6 +21,12 @@ import android.widget.AdapterView;
  */
 public class BrowserShareTimeLineActivity extends AbstractAppActivity {
 
+    public static Intent newIntent(String url) {
+        Intent intent = new Intent(GlobalContext.getInstance(), BrowserShareTimeLineActivity.class);
+        intent.putExtra("url", url);
+        return intent;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,7 +37,7 @@ public class BrowserShareTimeLineActivity extends AbstractAppActivity {
         getActionBar().setTitle(url);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(android.R.id.content, new BrowserShareTimeLineFragment(url))
+                    .replace(android.R.id.content, BrowserShareTimeLineFragment.newInstance(url))
                     .commit();
         }
 // 0.50 feature
@@ -62,12 +68,22 @@ public class BrowserShareTimeLineActivity extends AbstractAppActivity {
         private String url;
 
 
+        public static BrowserShareTimeLineFragment newInstance(String url) {
+            BrowserShareTimeLineFragment fragment = new BrowserShareTimeLineFragment();
+            Bundle bundle = new Bundle();
+            bundle.putString("url", url);
+            fragment.setArguments(bundle);
+            return fragment;
+        }
+
         public BrowserShareTimeLineFragment() {
 
         }
 
-        public BrowserShareTimeLineFragment(String url) {
-            this.url = url;
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            url = getArguments().getString("url");
         }
 
         @Override
@@ -79,7 +95,6 @@ public class BrowserShareTimeLineActivity extends AbstractAppActivity {
         public void onSaveInstanceState(Bundle outState) {
             super.onSaveInstanceState(outState);
             outState.putParcelable("bean", bean);
-            outState.putString("url", url);
         }
 
         @Override
@@ -96,7 +111,6 @@ public class BrowserShareTimeLineActivity extends AbstractAppActivity {
                     break;
                 case ACTIVITY_DESTROY_AND_CREATE:
                     getList().addNewData((ShareListBean) savedInstanceState.getParcelable("bean"));
-                    url = savedInstanceState.getString("url");
                     timeLineAdapter.notifyDataSetChanged();
                     refreshLayout(bean);
                     break;
@@ -113,7 +127,7 @@ public class BrowserShareTimeLineActivity extends AbstractAppActivity {
         }
 
         @Override
-        protected void newMsgOnPostExecute(ShareListBean newValue, Bundle loaderArgs) {
+        protected void newMsgLoaderSuccessCallback(ShareListBean newValue, Bundle loaderArgs) {
             if (newValue != null && getActivity() != null && newValue.getSize() > 0) {
                 getList().addNewData(newValue);
                 getAdapter().notifyDataSetChanged();
@@ -122,7 +136,7 @@ public class BrowserShareTimeLineActivity extends AbstractAppActivity {
         }
 
         @Override
-        protected void oldMsgOnPostExecute(ShareListBean newValue) {
+        protected void oldMsgLoaderSuccessCallback(ShareListBean newValue) {
             if (newValue != null && newValue.getSize() > 0) {
                 getList().addOldData(newValue);
                 getAdapter().notifyDataSetChanged();
@@ -135,7 +149,7 @@ public class BrowserShareTimeLineActivity extends AbstractAppActivity {
             getLoaderManager().destroyLoader(MIDDLE_MSG_LOADER_ID);
             getLoaderManager().destroyLoader(OLD_MSG_LOADER_ID);
             dismissFooterView();
-            getLoaderManager().restartLoader(NEW_MSG_LOADER_ID, null, msgCallback);
+            getLoaderManager().restartLoader(NEW_MSG_LOADER_ID, null, msgAsyncTaskLoaderCallback);
         }
 
 
@@ -144,7 +158,7 @@ public class BrowserShareTimeLineActivity extends AbstractAppActivity {
             getLoaderManager().destroyLoader(NEW_MSG_LOADER_ID);
             getPullToRefreshListView().onRefreshComplete();
             getLoaderManager().destroyLoader(MIDDLE_MSG_LOADER_ID);
-            getLoaderManager().restartLoader(OLD_MSG_LOADER_ID, null, msgCallback);
+            getLoaderManager().restartLoader(OLD_MSG_LOADER_ID, null, msgAsyncTaskLoaderCallback);
         }
 
         protected Loader<AsyncTaskLoaderResult<ShareListBean>> onCreateNewMsgLoader(int id,

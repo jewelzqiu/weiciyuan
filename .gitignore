@@ -33,7 +33,6 @@ proguard-project.txt
 *.ipr
 *.iws
 .idea/
-weiciyuan.iml
 
 # Android Studio files
 .gradle

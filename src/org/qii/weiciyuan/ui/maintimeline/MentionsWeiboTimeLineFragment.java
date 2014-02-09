@@ -162,12 +162,14 @@ public class MentionsWeiboTimeLineFragment
             return;
         }
         Intent intent = getActivity().getIntent();
+        AccountBean intentAccount = intent
+                .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
         MessageListBean mentionsWeibo = intent
                 .getParcelableExtra(BundleArgsConstants.MENTIONS_WEIBO_EXTRA);
         UnreadBean unreadBeanFromNotification = intent
                 .getParcelableExtra(BundleArgsConstants.UNREAD_EXTRA);
 
-        if (mentionsWeibo != null) {
+        if (accountBean.equals(intentAccount) && mentionsWeibo != null) {
             addUnreadMessage(mentionsWeibo);
             clearUnreadMentions(unreadBeanFromNotification);
             MessageListBean nullObject = null;
@@ -197,7 +199,7 @@ public class MentionsWeiboTimeLineFragment
 
 
     @Override
-    protected void newMsgOnPostExecute(MessageListBean newValue, Bundle loaderArgs) {
+    protected void newMsgLoaderSuccessCallback(MessageListBean newValue, Bundle loaderArgs) {
         if (getActivity() != null && newValue.getSize() > 0) {
             addNewDataAndRememberPosition(newValue);
         }
@@ -234,7 +236,7 @@ public class MentionsWeiboTimeLineFragment
         }
     }
 
-    protected void middleMsgOnPostExecute(int position, MessageListBean newValue,
+    protected void middleMsgLoaderSuccessCallback(int position, MessageListBean newValue,
             boolean towardsBottom) {
 
         if (newValue != null) {
@@ -259,7 +261,7 @@ public class MentionsWeiboTimeLineFragment
     }
 
     @Override
-    protected void oldMsgOnPostExecute(MessageListBean newValue) {
+    protected void oldMsgLoaderSuccessCallback(MessageListBean newValue) {
         if (newValue != null && newValue.getSize() > 1) {
             getList().addOldData(newValue);
             MentionWeiboTimeLineDBTask.asyncReplace(getList(), accountBean.getUid());
@@ -455,10 +457,11 @@ public class MentionsWeiboTimeLineFragment
     private BroadcastReceiver newBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            AccountBean account = intent.getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
+            AccountBean intentAccount = intent
+                    .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
             final UnreadBean unreadBean = intent
                     .getParcelableExtra(BundleArgsConstants.UNREAD_EXTRA);
-            if (account == null || !account.getUid().equals(account.getUid())) {
+            if (intentAccount == null || !accountBean.equals(intentAccount)) {
                 return;
             }
             MessageListBean data = intent

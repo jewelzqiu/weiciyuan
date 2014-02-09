@@ -11,6 +11,7 @@ import org.qii.weiciyuan.support.database.CommentToMeTimeLineDBTask;
 import org.qii.weiciyuan.support.database.MentionCommentsTimeLineDBTask;
 import org.qii.weiciyuan.support.database.MentionWeiboTimeLineDBTask;
 import org.qii.weiciyuan.support.file.FileLocationMethod;
+import org.qii.weiciyuan.support.utils.AnimationUtility;
 import org.qii.weiciyuan.support.utils.AppEventAction;
 import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.Utility;
@@ -22,7 +23,7 @@ import org.qii.weiciyuan.ui.nearby.NearbyTimeLineActivity;
 import org.qii.weiciyuan.ui.preference.SettingFragment;
 import org.qii.weiciyuan.ui.search.SearchMainParentFragment;
 import org.qii.weiciyuan.ui.userinfo.MyFavListFragment;
-import org.qii.weiciyuan.ui.userinfo.NewUserInfoFragment;
+import org.qii.weiciyuan.ui.userinfo.UserInfoFragment;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -604,11 +605,14 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ft.hide(rightFragments.get(FAV_INDEX));
         ft.hide(rightFragments.get(SETTING_INDEX));
 
-        Fragment fragment = rightFragments.get(PROFILE_INDEX);
+        UserInfoFragment fragment = (UserInfoFragment) rightFragments.get(PROFILE_INDEX);
 
         ft.show(fragment);
         ft.commit();
-        ((NewUserInfoFragment) fragment).buildActionBarAndViewPagerTitles();
+        ((UserInfoFragment) fragment).buildActionBarAndViewPagerTitles();
+
+        AnimationUtility
+                .translateFragmentY(fragment, -400, 0, fragment);
     }
 
     private boolean showSettingPage(boolean reset) {

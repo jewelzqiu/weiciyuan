@@ -155,12 +155,14 @@ public class MentionsCommentTimeLineFragment extends AbstractTimeLineFragment<Co
             return;
         }
         Intent intent = getActivity().getIntent();
+        AccountBean intentAccount = intent
+                .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
         CommentListBean mentionsComment = intent
                 .getParcelableExtra(BundleArgsConstants.MENTIONS_COMMENT_EXTRA);
         UnreadBean unreadBeanFromNotification = intent
                 .getParcelableExtra(BundleArgsConstants.UNREAD_EXTRA);
 
-        if (mentionsComment != null) {
+        if (accountBean.equals(intentAccount) && mentionsComment != null) {
             addUnreadMessage(mentionsComment);
             clearUnreadMentions(unreadBeanFromNotification);
             CommentListBean nullObject = null;
@@ -240,12 +242,12 @@ public class MentionsCommentTimeLineFragment extends AbstractTimeLineFragment<Co
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
             if (position - 1 < getList().getSize() && position - 1 >= 0) {
-                if (mActionMode != null) {
-                    mActionMode.finish();
-                    mActionMode = null;
+                if (actionMode != null) {
+                    actionMode.finish();
+                    actionMode = null;
                     getListView().setItemChecked(position, true);
                     timeLineAdapter.notifyDataSetChanged();
-                    mActionMode = getActivity().startActionMode(
+                    actionMode = getActivity().startActionMode(
                             new CommentSingleChoiceModeListener(getListView(), timeLineAdapter,
                                     MentionsCommentTimeLineFragment.this,
                                     getList().getItemList().get(position - 1)));
@@ -253,7 +255,7 @@ public class MentionsCommentTimeLineFragment extends AbstractTimeLineFragment<Co
                 } else {
                     getListView().setItemChecked(position, true);
                     timeLineAdapter.notifyDataSetChanged();
-                    mActionMode = getActivity().startActionMode(
+                    actionMode = getActivity().startActionMode(
                             new CommentSingleChoiceModeListener(getListView(), timeLineAdapter,
                                     MentionsCommentTimeLineFragment.this,
                                     getList().getItemList().get(position - 1)));
@@ -372,7 +374,7 @@ public class MentionsCommentTimeLineFragment extends AbstractTimeLineFragment<Co
 
 
     @Override
-    protected void newMsgOnPostExecute(CommentListBean newValue, Bundle loaderArgs) {
+    protected void newMsgLoaderSuccessCallback(CommentListBean newValue, Bundle loaderArgs) {
         if (newValue != null && newValue.getItemList().size() > 0) {
             addNewDataAndRememberPosition(newValue);
         }
@@ -413,7 +415,7 @@ public class MentionsCommentTimeLineFragment extends AbstractTimeLineFragment<Co
 
     }
 
-    protected void middleMsgOnPostExecute(int position, CommentListBean newValue,
+    protected void middleMsgLoaderSuccessCallback(int position, CommentListBean newValue,
             boolean towardsBottom) {
 
         if (newValue != null) {
@@ -438,7 +440,7 @@ public class MentionsCommentTimeLineFragment extends AbstractTimeLineFragment<Co
     }
 
     @Override
-    protected void oldMsgOnPostExecute(CommentListBean newValue) {
+    protected void oldMsgLoaderSuccessCallback(CommentListBean newValue) {
         if (newValue != null && newValue.getItemList().size() > 1) {
             getList().addOldData(newValue);
             getAdapter().notifyDataSetChanged();
@@ -523,10 +525,11 @@ public class MentionsCommentTimeLineFragment extends AbstractTimeLineFragment<Co
     private BroadcastReceiver newBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            AccountBean account = intent.getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
+            AccountBean intentAccount = intent
+                    .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
             final UnreadBean unreadBean = intent
                     .getParcelableExtra(BundleArgsConstants.UNREAD_EXTRA);
-            if (account == null || !account.getUid().equals(account.getUid())) {
+            if (intentAccount == null || !accountBean.equals(intentAccount)) {
                 return;
             }
             CommentListBean data = intent

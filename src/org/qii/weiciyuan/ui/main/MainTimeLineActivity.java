@@ -1,5 +1,7 @@
 package org.qii.weiciyuan.ui.main;
 
+import com.espian.showcaseview.ShowcaseView;
+import com.espian.showcaseview.targets.ViewTarget;
 import com.slidingmenu.lib.SlidingMenu;
 
 import org.qii.weiciyuan.R;
@@ -8,29 +10,26 @@ import org.qii.weiciyuan.bean.CommentListBean;
 import org.qii.weiciyuan.bean.MessageListBean;
 import org.qii.weiciyuan.bean.UnreadBean;
 import org.qii.weiciyuan.bean.UserBean;
-import org.qii.weiciyuan.bean.android.MusicInfo;
 import org.qii.weiciyuan.othercomponent.ClearCacheTask;
 import org.qii.weiciyuan.othercomponent.ConnectionChangeReceiver;
+import org.qii.weiciyuan.othercomponent.MusicReceiver;
 import org.qii.weiciyuan.support.database.AccountDBTask;
 import org.qii.weiciyuan.support.database.DatabaseManager;
-import org.qii.weiciyuan.support.debug.AppLogger;
-import org.qii.weiciyuan.support.lib.RecordOperationAppBroadcastReceiver;
 import org.qii.weiciyuan.support.lib.LongClickableLinkMovementMethod;
+import org.qii.weiciyuan.support.lib.RecordOperationAppBroadcastReceiver;
 import org.qii.weiciyuan.support.settinghelper.SettingUtility;
 import org.qii.weiciyuan.support.utils.AppEventAction;
 import org.qii.weiciyuan.support.utils.BundleArgsConstants;
 import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.Utility;
 import org.qii.weiciyuan.ui.dm.DMUserListFragment;
-import org.qii.weiciyuan.ui.interfaces.IAccountInfo;
-import org.qii.weiciyuan.ui.interfaces.IUserInfo;
 import org.qii.weiciyuan.ui.maintimeline.FriendsTimeLineFragment;
 import org.qii.weiciyuan.ui.preference.SettingFragment;
 import org.qii.weiciyuan.ui.search.SearchMainParentFragment;
 import org.qii.weiciyuan.ui.send.WriteWeiboActivity;
 import org.qii.weiciyuan.ui.userinfo.MyFavListFragment;
-import org.qii.weiciyuan.ui.userinfo.NewUserInfoFragment;
 import org.qii.weiciyuan.ui.userinfo.UserInfoActivity;
+import org.qii.weiciyuan.ui.userinfo.UserInfoFragment;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
@@ -52,6 +51,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -60,8 +60,7 @@ import java.util.concurrent.TimeUnit;
  * User: Jiang Qi
  * Date: 12-7-27
  */
-public class MainTimeLineActivity extends MainTimeLineParentActivity implements IUserInfo,
-        IAccountInfo {
+public class MainTimeLineActivity extends MainTimeLineParentActivity {
 
     public static final int REQUEST_CODE_UPDATE_FRIENDS_TIMELINE_COMMENT_REPOST_COUNT = 0;
 
@@ -79,6 +78,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
 
     private TextView titleText;
 
+    private View clickToTop;
 
     public static interface ScrollableListFragment {
 
@@ -139,14 +139,11 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
-            accountBean = (AccountBean) savedInstanceState.getParcelable("account");
+            accountBean = savedInstanceState.getParcelable("account");
         } else {
             Intent intent = getIntent();
-            accountBean = (AccountBean) intent.getParcelableExtra("account");
-            if (accountBean == null) {
-                accountBean = (AccountBean) intent
-                        .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
-            }
+            accountBean = intent
+                    .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
         }
 
         if (accountBean == null) {
@@ -221,7 +218,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
 
         if (!myself.isAdded()) {
             fragmentTransaction
-                    .add(R.id.menu_right_fl, myself, NewUserInfoFragment.class.getName());
+                    .add(R.id.menu_right_fl, myself, UserInfoFragment.class.getName());
             fragmentTransaction.hide(myself);
         }
 
@@ -295,7 +292,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
     private void buildCustomActionBarTitle(Bundle savedInstanceState) {
         View title = getLayoutInflater().inflate(R.layout.maintimelineactivity_title_layout, null);
         titleText = (TextView) title.findViewById(R.id.tv_title);
-        View clickToTop = title.findViewById(R.id.tv_click_to_top);
+        clickToTop = title.findViewById(R.id.tv_click_to_top);
         clickToTop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -306,9 +303,8 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
         write.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainTimeLineActivity.this, WriteWeiboActivity.class);
-                intent.putExtra("token", GlobalContext.getInstance().getSpecialToken());
-                intent.putExtra("account", GlobalContext.getInstance().getAccountBean());
+                Intent intent = WriteWeiboActivity
+                        .newIntent(GlobalContext.getInstance().getAccountBean());
                 startActivity(intent);
             }
         });
@@ -342,8 +338,22 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
         }
     }
 
+    public View getClickToTopView() {
+        return clickToTop;
+    }
+
     public void setCurrentFragment(ScrollableListFragment fragment) {
         this.currentFragment = fragment;
+    }
+
+    @Override
+    protected void onResumeFragments() {
+        super.onResumeFragments();
+        if (SettingUtility.isClickToTopTipFirstShow()) {
+            ViewTarget target = new ViewTarget(getClickToTopView());
+            ShowcaseView.insertShowcaseView(target, this, R.string.tip,
+                    R.string.click_to_top_tip);
+        }
     }
 
     @Override
@@ -355,20 +365,19 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        AccountBean newAccountBean = (AccountBean) intent
+        AccountBean intentAccountBean = intent
                 .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
-        if (newAccountBean == null) {
+        if (intentAccountBean == null) {
             return;
         }
 
-        if (newAccountBean.getUid().equals(accountBean.getUid())) {
-            accountBean = newAccountBean;
+        if (accountBean.equals(intentAccountBean)) {
+            accountBean = intentAccountBean;
             GlobalContext.getInstance().setAccountBean(accountBean);
             setIntent(intent);
         } else {
             finish();
             overridePendingTransition(0, 0);
-            intent.putExtra("account", newAccountBean);
             startActivity(intent);
             overridePendingTransition(0, 0);
         }
@@ -403,21 +412,20 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
     }
 
 
-    @Override
     public UserBean getUser() {
         return accountBean.getInfo();
 
     }
 
 
-    @Override
     public AccountBean getAccount() {
         return accountBean;
     }
 
 
     private void readClipboard() {
-        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipboardManager cm = (ClipboardManager) getApplicationContext().getSystemService(
+                Context.CLIPBOARD_SERVICE);
         ClipData cmContent = cm.getPrimaryClip();
         if (cmContent == null) {
             return;
@@ -601,12 +609,12 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
         return fragment;
     }
 
-    public NewUserInfoFragment getMyProfileFragment() {
-        NewUserInfoFragment fragment = ((NewUserInfoFragment) getSupportFragmentManager()
+    public UserInfoFragment getMyProfileFragment() {
+        UserInfoFragment fragment = ((UserInfoFragment) getSupportFragmentManager()
                 .findFragmentByTag(
-                        NewUserInfoFragment.class.getName()));
+                        UserInfoFragment.class.getName()));
         if (fragment == null) {
-            fragment = NewUserInfoFragment.newInstance(
+            fragment = UserInfoFragment.newInstance(
                     GlobalContext.getInstance().getAccountBean().getInfo(),
                     GlobalContext.getInstance().getSpecialToken());
         }
@@ -628,28 +636,24 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity implements 
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            AccountBean newMsgAccountBean = (AccountBean) intent
+            AccountBean intentAccount = intent
                     .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
-            if (newMsgAccountBean.getUid().equals(MainTimeLineActivity.this.accountBean.getUid())) {
-//                abortBroadcast();
-            }
-        }
-    }
-
-    private class MusicReceiver extends RecordOperationAppBroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String artist = intent.getStringExtra("artist");
-            String album = intent.getStringExtra("album");
-            String track = intent.getStringExtra("track");
-            if (!TextUtils.isEmpty(track)) {
-                MusicInfo musicInfo = new MusicInfo();
-                musicInfo.setArtist(artist);
-                musicInfo.setAlbum(album);
-                musicInfo.setTrack(track);
-                AppLogger.d("Music" + artist + ":" + album + ":" + track);
-                GlobalContext.getInstance().updateMusicInfo(musicInfo);
+            if (accountBean.equals(intentAccount)) {
+                MessageListBean mentionsWeibo = intent
+                        .getParcelableExtra(BundleArgsConstants.MENTIONS_WEIBO_EXTRA);
+                MessageListBean mentionsComment = intent
+                        .getParcelableExtra(BundleArgsConstants.MENTIONS_COMMENT_EXTRA);
+                CommentListBean commentsToMe = intent
+                        .getParcelableExtra(BundleArgsConstants.COMMENTS_TO_ME_EXTRA);
+                int unreadCount = (mentionsWeibo != null ? mentionsWeibo.getSize() : 0) + (
+                        mentionsComment != null ? mentionsComment.getSize() : 0) + (
+                        commentsToMe != null ? commentsToMe
+                                .getSize() : 0);
+                String tip = String.format(context.getString(R.string.you_have_new_unread_count),
+                        String.valueOf(unreadCount));
+                Toast.makeText(MainTimeLineActivity.this, tip,
+                        Toast.LENGTH_LONG).show();
+                abortBroadcast();
             }
         }
     }

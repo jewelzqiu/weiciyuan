@@ -110,7 +110,7 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
 
     private View footerView;
 
-    private ActionMode mActionMode;
+    private ActionMode actionMode;
 
     private BroadcastReceiver sendCommentCompletedReceiver;
 
@@ -622,10 +622,10 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
     }
 
     public void clearActionMode() {
-        if (mActionMode != null) {
+        if (actionMode != null) {
 
-            mActionMode.finish();
-            mActionMode = null;
+            actionMode.finish();
+            actionMode = null;
         }
         if (getListView() != null && getListView().getCheckedItemCount() > 0) {
             getListView().clearChoices();
@@ -658,19 +658,19 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
         return listView;
     }
 
-    public void setmActionMode(ActionMode mActionMode) {
-        this.mActionMode = mActionMode;
+    public void setActionMode(ActionMode mActionMode) {
+        this.actionMode = mActionMode;
     }
 
     public boolean hasActionMode() {
-        return mActionMode != null;
+        return actionMode != null;
     }
 
     private boolean resetActionMode() {
-        if (mActionMode != null) {
+        if (actionMode != null) {
             getListView().clearChoices();
-            mActionMode.finish();
-            mActionMode = null;
+            actionMode.finish();
+            actionMode = null;
             return true;
         } else {
             return false;
@@ -742,14 +742,14 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
                 StatusSingleChoiceModeListener choiceModeListener
                         = new StatusSingleChoiceModeListener(getListView(), adapter,
                         BrowserWeiboMsgFragment.this, msg);
-                if (mActionMode != null) {
-                    mActionMode.finish();
-                    mActionMode = null;
+                if (actionMode != null) {
+                    actionMode.finish();
+                    actionMode = null;
                 }
 
                 getListView().setItemChecked(position, true);
                 adapter.notifyDataSetChanged();
-                mActionMode = getActivity().startActionMode(choiceModeListener);
+                actionMode = getActivity().startActionMode(choiceModeListener);
                 return true;
 
             }
@@ -763,12 +763,12 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
             if (position - listView.getHeaderViewsCount() < commentList.getSize()
                     && position - listView.getHeaderViewsCount() >= 0) {
-                if (mActionMode != null) {
-                    mActionMode.finish();
-                    mActionMode = null;
+                if (actionMode != null) {
+                    actionMode.finish();
+                    actionMode = null;
                     getListView().setItemChecked(position, true);
                     adapter.notifyDataSetChanged();
-                    mActionMode = getActivity().startActionMode(
+                    actionMode = getActivity().startActionMode(
                             new CommentSingleChoiceModeListener(getListView(), adapter,
                                     BrowserWeiboMsgFragment.this, commentList.getItemList()
                                     .get(position - listView.getHeaderViewsCount())));
@@ -776,7 +776,7 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
                 } else {
                     getListView().setItemChecked(position, true);
                     adapter.notifyDataSetChanged();
-                    mActionMode = getActivity().startActionMode(
+                    actionMode = getActivity().startActionMode(
                             new CommentSingleChoiceModeListener(getListView(), adapter,
                                     BrowserWeiboMsgFragment.this, commentList.getItemList()
                                     .get(position - listView.getHeaderViewsCount())));
