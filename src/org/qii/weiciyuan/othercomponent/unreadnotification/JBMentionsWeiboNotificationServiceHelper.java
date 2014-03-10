@@ -27,6 +27,7 @@ import java.util.HashMap;
  * User: qii
  * Date: 13-5-4
  */
+@Deprecated
 public class JBMentionsWeiboNotificationServiceHelper extends NotificationServiceHelper {
 
     private AccountBean accountBean;
@@ -149,10 +150,9 @@ public class JBMentionsWeiboNotificationServiceHelper extends NotificationServic
                         PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setDeleteIntent(deletedPendingIntent);
 
-        Intent intent = new Intent(getApplicationContext(), WriteCommentActivity.class);
-        intent.putExtra("token", accountBean.getAccess_token());
-        intent.putExtra("msg", data.getItem(0));
-
+        Intent intent = WriteCommentActivity
+                .newIntentFromNotification(getApplicationContext(), accountBean, data.getItem(
+                        currentIndex));
         PendingIntent pendingIntent = PendingIntent
                 .getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.addAction(R.drawable.comment_light,

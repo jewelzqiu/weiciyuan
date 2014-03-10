@@ -52,6 +52,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.util.AndroidRuntimeException;
 import android.util.DisplayMetrics;
@@ -1026,6 +1028,20 @@ public class Utility {
                 .scanFile(GlobalContext.getInstance(), new String[]{path}, new String[]{type},
                         null);
 
+    }
+
+    public static boolean isDebugMode() {
+        return BuildConfig.DEBUG;
+    }
+
+    //long click link(schedule show dialog event), press home button(onPause onSaveInstance), show dialog,then crash....
+    public static void forceShowDialog(FragmentActivity activity, DialogFragment dialogFragment) {
+//        try {
+        dialogFragment.show(activity.getSupportFragmentManager(), "");
+        activity.getSupportFragmentManager().executePendingTransactions();
+//        } catch (Exception ignored) {
+//
+//        }
     }
 }
 

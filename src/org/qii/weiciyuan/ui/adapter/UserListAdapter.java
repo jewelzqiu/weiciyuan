@@ -92,7 +92,7 @@ public class UserListAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
 
         ViewHolder holder;
-        if (convertView == null) {
+        if (convertView == null || convertView.getTag() == null) {
             holder = new ViewHolder();
             convertView = inflater.inflate(R.layout.user_listview_item_layout, parent, false);
             holder.username = ViewUtility.findViewById(convertView, R.id.username);
@@ -183,4 +183,5 @@ public class UserListAdapter extends BaseAdapter {
         getList().add(index, newValue);
         notifyDataSetChanged();
     }
+>>>>>>> 24c178bf4f955a0d3558c23da302b173cb6e9fef
 }

@@ -27,6 +27,7 @@ import java.util.HashMap;
  * User: qii
  * Date: 13-5-4
  */
+@Deprecated
 public class JBCommentsToMeNotificationServiceHelper extends NotificationServiceHelper {
 
 
@@ -146,9 +147,9 @@ public class JBCommentsToMeNotificationServiceHelper extends NotificationService
                         PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setDeleteIntent(deletedPendingIntent);
 
-        Intent intent = new Intent(getApplicationContext(), WriteReplyToCommentActivity.class);
-        intent.putExtra("token", accountBean.getAccess_token());
-        intent.putExtra("msg", data.getItem(currentIndex));
+        Intent intent = WriteReplyToCommentActivity
+                .newIntentFromNotification(getApplicationContext(), accountBean, data.getItem(
+                        currentIndex));
         PendingIntent pendingIntent = PendingIntent
                 .getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.addAction(R.drawable.reply_to_comment_light,
