@@ -183,5 +183,4 @@ public class UserListAdapter extends BaseAdapter {
         getList().add(index, newValue);
         notifyDataSetChanged();
     }
->>>>>>> 24c178bf4f955a0d3558c23da302b173cb6e9fef
 }
