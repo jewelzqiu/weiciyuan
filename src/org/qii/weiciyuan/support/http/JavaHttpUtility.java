@@ -321,7 +321,7 @@ public class JavaHttpUtility {
             urlConnection.setReadTimeout(DOWNLOAD_READ_TIMEOUT);
             urlConnection.setRequestProperty("Connection", "Keep-Alive");
             urlConnection.setRequestProperty("Charset", "UTF-8");
-//            urlConnection.setRequestProperty("Accept-Encoding", "gzip, deflate");
+            urlConnection.setRequestProperty("Accept-Encoding", "gzip, deflate");
 
             urlConnection.connect();
 
