@@ -10,6 +10,7 @@ import org.qii.weiciyuan.support.asyncdrawable.TimeLineBitmapDownloader;
 import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.gallery.GalleryActivity;
+import org.qii.weiciyuan.support.lib.AnimationRect;
 import org.qii.weiciyuan.support.lib.ClickableTextViewMentionLinkOnTouchListener;
 import org.qii.weiciyuan.support.lib.ListViewMiddleMsgLoadingView;
 import org.qii.weiciyuan.support.lib.TimeLineAvatarImageView;
@@ -25,9 +26,6 @@ import org.qii.weiciyuan.ui.userinfo.UserInfoActivity;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -567,7 +565,7 @@ public abstract class AbstractAppListAdapter<T extends ItemBean> extends BaseAda
 
             int count = msg.getPicCount();
             for (int i = 0; i < count; i++) {
-                IWeiciyuanDrawable pic = (IWeiciyuanDrawable) gridLayout.getChildAt(i);
+                final IWeiciyuanDrawable pic = (IWeiciyuanDrawable) gridLayout.getChildAt(i);
                 pic.setVisibility(View.VISIBLE);
                 if (SettingUtility.getEnableBigPic()) {
                     TimeLineBitmapDownloader.getInstance()
@@ -588,6 +586,12 @@ public abstract class AbstractAppListAdapter<T extends ItemBean> extends BaseAda
                         Intent intent = new Intent(getActivity(), GalleryActivity.class);
                         intent.putExtra("msg", msg);
                         intent.putExtra("position", finalI);
+                        AnimationRect rect = AnimationRect.buildFromImageView((ImageView) pic);
+
+                        if (rect != null) {
+                            intent.putExtra("rect", rect);
+                        }
+
                         Bundle scaleBundle = ActivityOptions.makeScaleUpAnimation(
                                 v, 0, 0, v.getWidth(), v.getHeight()).toBundle();
                         getActivity().startActivity(intent, scaleBundle);
@@ -670,55 +674,12 @@ public abstract class AbstractAppListAdapter<T extends ItemBean> extends BaseAda
 
                     ImageView imageView = view.getImageView();
 
-                    Drawable drawable = imageView.getDrawable();
-                    Bitmap bitmap = null;
-                    if (drawable instanceof BitmapDrawable) {
-                        bitmap = ((BitmapDrawable) drawable).getBitmap();
-                    }
-
-                    Rect rect = new Rect();
-                    boolean result = imageView.getGlobalVisibleRect(rect);
-
-                    boolean checkWidth = rect.width() < imageView.getWidth();
-                    boolean checkHeight = rect.height() < imageView.getHeight();
-
-                    boolean clipped = !result || checkWidth || checkHeight;
-
-                    if (bitmap != null && !clipped) {
-
-                        int bitmapWidth = bitmap.getWidth();
-                        int bitmapHeight = bitmap.getHeight();
-
-                        int imageViewWidth = imageView.getWidth();
-                        int imageviewHeight = imageView.getHeight();
-
-                        float startScale;
-                        if ((float) imageViewWidth / bitmapWidth
-                                > (float) imageviewHeight / bitmapHeight) {
-                            // Extend start bounds horizontally
-                            startScale = (float) imageviewHeight / bitmapHeight;
-
-                        } else {
-                            startScale = (float) imageViewWidth / bitmapWidth;
-
-                        }
-
-                        bitmapHeight = (int) (bitmapHeight * startScale);
-                        bitmapWidth = (int) (bitmapWidth * startScale);
-
-                        int deltaX = (imageViewWidth - bitmapWidth) / 2;
-                        int deltaY = (imageviewHeight - bitmapHeight) / 2;
-
-                        rect.set(rect.left + deltaX, rect.top + deltaY, rect.right - deltaX,
-                                rect.bottom - deltaY);
-
-
-                    }
-
                     Intent intent = new Intent(getActivity(), GalleryActivity.class);
                     intent.putExtra("msg", msg);
 
-                    if (!clipped && bitmap != null) {
+                    AnimationRect rect = AnimationRect.buildFromImageView(imageView);
+
+                    if (rect != null) {
                         intent.putExtra("rect", rect);
                     }
 
