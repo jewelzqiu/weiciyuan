@@ -24,6 +24,7 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import java.util.ArrayList;
 
 import uk.co.senab.photoview.PhotoView;
+import uk.co.senab.photoview.PhotoViewAttacher;
 
 /**
  * User: qii
@@ -72,6 +73,12 @@ public class GalleryAnimationActivity extends Activity {
                         IMAGEVIEW_SOFT_LAYER_MAX_HEIGHT);
 
         animation.setImageBitmap(bitmap);
+        animation.setOnPhotoTapListener(new PhotoViewAttacher.OnPhotoTapListener() {
+            @Override
+            public void onPhotoTap(View view, float x, float y) {
+                onBackPressed();
+            }
+        });
         animation.getViewTreeObserver()
                 .addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                     @Override

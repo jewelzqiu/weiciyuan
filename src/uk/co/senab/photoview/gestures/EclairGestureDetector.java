@@ -25,9 +25,7 @@ import uk.co.senab.photoview.Compat;
 public class EclairGestureDetector extends CupcakeGestureDetector {
 
     private static final int INVALID_POINTER_ID = -1;
-
     private int mActivePointerId = INVALID_POINTER_ID;
-
     private int mActivePointerIndex = 0;
 
     public EclairGestureDetector(Context context) {

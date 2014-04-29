@@ -22,7 +22,7 @@ import android.os.Build;
 public final class VersionedGestureDetector {
 
     public static GestureDetector newInstance(Context context,
-            OnGestureListener listener) {
+                                              OnGestureListener listener) {
         final int sdkVersion = Build.VERSION.SDK_INT;
         GestureDetector detector;
 

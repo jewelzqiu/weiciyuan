@@ -18,8 +18,7 @@ package uk.co.senab.photoview.log;
 import android.util.Log;
 
 /**
- * class that holds the {@link Logger} for this library, defaults to {@link LoggerDefault} to send
- * logs to android {@link Log}
+ * class that holds the {@link Logger} for this library, defaults to {@link LoggerDefault} to send logs to android {@link Log}
  */
 public final class LogManager {
 

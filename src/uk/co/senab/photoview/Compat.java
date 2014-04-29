@@ -40,11 +40,10 @@ public class Compat {
     }
 
     public static int getPointerIndex(int action) {
-        if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB) {
+        if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB)
             return getPointerIndexHoneyComb(action);
-        } else {
+        else
             return getPointerIndexEclair(action);
-        }
     }
 
     @SuppressWarnings("deprecation")
@@ -55,8 +54,7 @@ public class Compat {
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private static int getPointerIndexHoneyComb(int action) {
-        return (action & MotionEvent.ACTION_POINTER_INDEX_MASK)
-                >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+        return (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
     }
 
 }

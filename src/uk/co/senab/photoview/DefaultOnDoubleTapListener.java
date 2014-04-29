@@ -6,8 +6,7 @@ import android.view.MotionEvent;
 import android.widget.ImageView;
 
 /**
- * Provided default implementation of GestureDetector.OnDoubleTapListener, to be overriden with
- * custom behavior, if needed
+ * Provided default implementation of GestureDetector.OnDoubleTapListener, to be overriden with custom behavior, if needed
  * <p>&nbsp;</p>
  * To be used via {@link uk.co.senab.photoview.PhotoViewAttacher#setOnDoubleTapListener(android.view.GestureDetector.OnDoubleTapListener)}
  */
@@ -35,9 +34,8 @@ public class DefaultOnDoubleTapListener implements GestureDetector.OnDoubleTapLi
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        if (this.photoViewAttacher == null) {
+        if (this.photoViewAttacher == null)
             return false;
-        }
 
         ImageView imageView = photoViewAttacher.getImageView();
 
@@ -55,8 +53,7 @@ public class DefaultOnDoubleTapListener implements GestureDetector.OnDoubleTapLi
                     float yResult = (y - displayRect.top)
                             / displayRect.height();
 
-                    photoViewAttacher.getOnPhotoTapListener()
-                            .onPhotoTap(imageView, xResult, yResult);
+                    photoViewAttacher.getOnPhotoTapListener().onPhotoTap(imageView, xResult, yResult);
                     return true;
                 }
             }
@@ -70,9 +67,8 @@ public class DefaultOnDoubleTapListener implements GestureDetector.OnDoubleTapLi
 
     @Override
     public boolean onDoubleTap(MotionEvent ev) {
-        if (photoViewAttacher == null) {
+        if (photoViewAttacher == null)
             return false;
-        }
 
         try {
             float scale = photoViewAttacher.getScale();
@@ -81,8 +77,7 @@ public class DefaultOnDoubleTapListener implements GestureDetector.OnDoubleTapLi
 
             if (scale < photoViewAttacher.getMediumScale()) {
                 photoViewAttacher.setScale(photoViewAttacher.getMediumScale(), x, y, true);
-            } else if (scale >= photoViewAttacher.getMediumScale() && scale < photoViewAttacher
-                    .getMaximumScale()) {
+            } else if (scale >= photoViewAttacher.getMediumScale() && scale < photoViewAttacher.getMaximumScale()) {
                 photoViewAttacher.setScale(photoViewAttacher.getMaximumScale(), x, y, true);
             } else {
                 photoViewAttacher.setScale(photoViewAttacher.getMinimumScale(), x, y, true);

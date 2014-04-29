@@ -25,15 +25,10 @@ import android.view.ViewConfiguration;
 public class CupcakeGestureDetector implements GestureDetector {
 
     protected OnGestureListener mListener;
-
     private static final String LOG_TAG = "CupcakeGestureDetector";
-
     float mLastTouchX;
-
     float mLastTouchY;
-
     final float mTouchSlop;
-
     final float mMinimumVelocity;
 
     @Override
@@ -49,7 +44,6 @@ public class CupcakeGestureDetector implements GestureDetector {
     }
 
     private VelocityTracker mVelocityTracker;
-
     private boolean mIsDragging;
 
     float getActiveX(MotionEvent ev) {
