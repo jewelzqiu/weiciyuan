@@ -1,6 +1,7 @@
 package org.qii.weiciyuan.support.gallery;
 
 import org.qii.weiciyuan.R;
+import org.qii.weiciyuan.support.settinghelper.SettingUtility;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -41,6 +42,14 @@ public class GifPictureFragment extends Fragment {
         try {
             GifDrawable gifFromFile = new GifDrawable(gifFile);
             gifImageView.setImageDrawable(gifFromFile);
+            gifImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (SettingUtility.allowClickToCloseGallery()) {
+                        getActivity().onBackPressed();
+                    }
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }

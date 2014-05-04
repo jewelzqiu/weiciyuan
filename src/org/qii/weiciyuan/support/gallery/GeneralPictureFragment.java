@@ -5,6 +5,7 @@ import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.imageutility.ImageUtility;
 import org.qii.weiciyuan.support.lib.AnimationRect;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
+import org.qii.weiciyuan.support.settinghelper.SettingUtility;
 import org.qii.weiciyuan.support.utils.AnimationUtility;
 
 import android.animation.AnimatorSet;
@@ -20,6 +21,7 @@ import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
 import uk.co.senab.photoview.PhotoView;
+import uk.co.senab.photoview.PhotoViewAttacher;
 
 /**
  * User: qii
@@ -163,6 +165,15 @@ public class GeneralPictureFragment extends Fragment {
                         return true;
                     }
                 });
+
+        photoView.setOnPhotoTapListener(new PhotoViewAttacher.OnPhotoTapListener() {
+            @Override
+            public void onPhotoTap(View view, float x, float y) {
+                if (SettingUtility.allowClickToCloseGallery()) {
+                    getActivity().onBackPressed();
+                }
+            }
+        });
 
         return view;
     }

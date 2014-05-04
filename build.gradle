@@ -51,6 +51,8 @@ android {
             aidl {
                 srcDir 'src/com/sina/sso'
             }
+
+            jniLibs.srcDirs = ['libs']
         }
     }
 }
