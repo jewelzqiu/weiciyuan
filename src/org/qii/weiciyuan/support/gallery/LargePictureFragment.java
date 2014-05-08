@@ -1,10 +1,14 @@
 package org.qii.weiciyuan.support.gallery;
 
 import org.qii.weiciyuan.R;
+import org.qii.weiciyuan.support.settinghelper.SettingUtility;
+import org.qii.weiciyuan.support.utils.Utility;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -17,6 +21,7 @@ import java.io.File;
  */
 public class LargePictureFragment extends Fragment {
 
+    private static final int NAVIGATION_BAR_HEIGHT_DP_UNIT = 48;
 
     public static LargePictureFragment newInstance(String path) {
         LargePictureFragment fragment = new LargePictureFragment();
@@ -33,6 +38,17 @@ public class LargePictureFragment extends Fragment {
         View view = inflater.inflate(R.layout.gallery_large_layout, container, false);
 
         WebView large = (WebView) view.findViewById(R.id.large);
+        large.setBackgroundColor(getResources().getColor(R.color.transparent));
+        large.setVisibility(View.INVISIBLE);
+        large.setOverScrollMode(View.OVER_SCROLL_NEVER);
+
+        if (SettingUtility.allowClickToCloseGallery()) {
+            large.setOnTouchListener(new LargeOnTouchListener(large));
+        }
+
+        LongClickListener longClickListener = ((ContainerFragment) getParentFragment())
+                .getLongClickListener();
+        large.setOnLongClickListener(longClickListener);
 
         String path = getArguments().getString("path");
 
@@ -83,4 +99,29 @@ public class LargePictureFragment extends Fragment {
 
         return view;
     }
+
+
+    private class LargeOnTouchListener implements View.OnTouchListener {
+
+        GestureDetector gestureDetector;
+
+        public LargeOnTouchListener(final View view) {
+            gestureDetector = new GestureDetector(view.getContext(),
+                    new GestureDetector.SimpleOnGestureListener() {
+                        @Override
+                        public boolean onSingleTapUp(MotionEvent e) {
+                            Utility.playClickSound(view);
+                            getActivity().onBackPressed();
+                            return true;
+                        }
+                    });
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            gestureDetector.onTouchEvent(event);
+            return false;
+        }
+    }
+
 }

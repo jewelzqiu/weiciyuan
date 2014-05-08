@@ -31,6 +31,7 @@ import java.util.HashMap;
  */
 public class GalleryAnimationActivity extends FragmentActivity {
 
+    private static final int STATUS_BAR_HEIGHT_DP_UNIT = 25;
 
     private ArrayList<AnimationRect> rectList;
 
@@ -71,6 +72,7 @@ public class GalleryAnimationActivity extends FragmentActivity {
         initPosition = getIntent().getIntExtra("position", 0);
 
         pager = (ViewPager) findViewById(R.id.pager);
+
         pager.setAdapter(new ImagePagerAdapter(getSupportFragmentManager()));
         pager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override

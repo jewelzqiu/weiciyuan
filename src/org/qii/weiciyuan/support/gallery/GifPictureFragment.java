@@ -13,13 +13,16 @@ import java.io.File;
 import java.io.IOException;
 
 import pl.droidsonroids.gif.GifDrawable;
-import pl.droidsonroids.gif.GifImageView;
+import uk.co.senab.photoview.PhotoView;
+import uk.co.senab.photoview.PhotoViewAttacher;
 
 /**
  * User: qii
  * Date: 14-4-30
  */
 public class GifPictureFragment extends Fragment {
+
+    private static final int NAVIGATION_BAR_HEIGHT_DP_UNIT = 48;
 
     public static GifPictureFragment newInstance(String path) {
         GifPictureFragment fragment = new GifPictureFragment();
@@ -34,7 +37,20 @@ public class GifPictureFragment extends Fragment {
             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.gallery_gif_layout, container, false);
 
-        GifImageView gifImageView = (GifImageView) view.findViewById(R.id.animation);
+        PhotoView gifImageView = (PhotoView) view.findViewById(R.id.animation);
+
+        if (SettingUtility.allowClickToCloseGallery()) {
+            gifImageView.setOnViewTapListener(new PhotoViewAttacher.OnViewTapListener() {
+                @Override
+                public void onViewTap(View view, float x, float y) {
+                    getActivity().onBackPressed();
+                }
+            });
+        }
+
+        LongClickListener longClickListener = ((ContainerFragment) getParentFragment())
+                .getLongClickListener();
+        gifImageView.setOnLongClickListener(longClickListener);
 
         String path = getArguments().getString("path");
 

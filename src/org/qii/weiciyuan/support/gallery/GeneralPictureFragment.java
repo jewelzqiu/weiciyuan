@@ -29,6 +29,8 @@ import uk.co.senab.photoview.PhotoViewAttacher;
  */
 public class GeneralPictureFragment extends Fragment {
 
+    private static final int NAVIGATION_BAR_HEIGHT_DP_UNIT = 48;
+
     private static final int IMAGEVIEW_SOFT_LAYER_MAX_WIDTH = 2000;
 
     private static final int IMAGEVIEW_SOFT_LAYER_MAX_HEIGHT = 3000;
@@ -55,6 +57,20 @@ public class GeneralPictureFragment extends Fragment {
         View view = inflater.inflate(R.layout.gallery_general_layout, container, false);
 
         photoView = (PhotoView) view.findViewById(R.id.animation);
+
+        if (SettingUtility.allowClickToCloseGallery()) {
+
+            photoView.setOnViewTapListener(new PhotoViewAttacher.OnViewTapListener() {
+                @Override
+                public void onViewTap(View view, float x, float y) {
+                    getActivity().onBackPressed();
+                }
+            });
+        }
+
+        LongClickListener longClickListener = ((ContainerFragment) getParentFragment())
+                .getLongClickListener();
+        photoView.setOnLongClickListener(longClickListener);
 
         final String path = getArguments().getString("path");
         boolean animateIn = getArguments().getBoolean("animationIn");
@@ -89,14 +105,11 @@ public class GeneralPictureFragment extends Fragment {
 
         photoView.setImageBitmap(bitmap);
 
-//        photoView.setClipEnable(true);
-
         final Runnable endAction = new Runnable() {
             @Override
             public void run() {
                 Bundle bundle = getArguments();
                 bundle.putBoolean("animationIn", false);
-//                photoView.setClipEnable(false);
             }
         };
 
@@ -105,11 +118,17 @@ public class GeneralPictureFragment extends Fragment {
                     @Override
                     public boolean onPreDraw() {
 
+                        if (rect == null) {
+                            photoView.getViewTreeObserver().removeOnPreDrawListener(this);
+                            return true;
+                        }
+
                         final Rect startBounds = new Rect(rect.scaledBitmapRect);
                         final Rect finalBounds = AnimationUtility
                                 .getBitmapRectFromImageView(photoView);
 
-                        if (rect == null || finalBounds == null) {
+                        if (finalBounds == null) {
+                            photoView.getViewTreeObserver().removeOnPreDrawListener(this);
                             return true;
                         }
 
@@ -194,10 +213,20 @@ public class GeneralPictureFragment extends Fragment {
 
         AnimationRect rect = getArguments().getParcelable("rect");
 
-//        photoView.setClipEnable(true);
+        if (rect == null) {
+            photoView.animate().alpha(0);
+            backgroundAnimator.start();
+            return;
+        }
 
         final Rect startBounds = rect.scaledBitmapRect;
         final Rect finalBounds = AnimationUtility.getBitmapRectFromImageView(photoView);
+
+        if (finalBounds == null) {
+            photoView.animate().alpha(0);
+            backgroundAnimator.start();
+            return;
+        }
 
         float startScale;
         if ((float) finalBounds.width() / finalBounds.height()
