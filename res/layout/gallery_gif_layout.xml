@@ -3,7 +3,7 @@
              android:layout_width="fill_parent"
              android:layout_height="fill_parent">
 
-    <pl.droidsonroids.gif.GifImageView
+    <uk.co.senab.photoview.PhotoView
             android:layout_gravity="center"
             android:layout_height="match_parent"
             android:layout_width="match_parent"
