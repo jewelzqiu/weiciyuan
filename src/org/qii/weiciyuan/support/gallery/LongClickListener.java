@@ -46,7 +46,8 @@ public class LongClickListener implements View.OnLongClickListener {
     @Override
     public boolean onLongClick(View v) {
         String[] values = {getString(R.string.copy_link_to_clipboard),
-                getString(R.string.share), getString(R.string.save_pic_album)};
+                getString(R.string.share), getString(R.string.save_pic_album),
+                getString(R.string.open_with_other_app)};
 
         new AlertDialog.Builder(context)
                 .setItems(values, new DialogInterface.OnClickListener() {
@@ -76,6 +77,15 @@ public class LongClickListener implements View.OnLongClickListener {
                                 break;
                             case 2:
                                 saveBitmapToPictureDir(filePath);
+                                break;
+                            case 3:
+                                File file = new File(filePath);
+                                if (file != null && file.isFile()) {
+                                    Intent intent = new Intent();
+                                    intent.setAction(Intent.ACTION_VIEW);
+                                    intent.setDataAndType(Uri.fromFile(file), "image/*");
+                                    context.startActivity(intent);
+                                }
                                 break;
                         }
                     }
