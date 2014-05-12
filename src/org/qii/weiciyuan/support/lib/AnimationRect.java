@@ -1,5 +1,7 @@
 package org.qii.weiciyuan.support.lib;
 
+import org.qii.weiciyuan.support.utils.Utility;
+
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
@@ -27,6 +29,12 @@ public class AnimationRect implements Parcelable {
         dest.writeParcelable(imageViewRect, flags);
         dest.writeInt(type);
         dest.writeBooleanArray(new boolean[]{clipped});
+        dest.writeBooleanArray(new boolean[]{isScreenPortrait});
+        dest.writeFloat(thumbnailWidthHeightRatio);
+        dest.writeInt(thumbnailWidth);
+        dest.writeInt(thumbnailHeight);
+        dest.writeInt(widgetWidth);
+        dest.writeInt(widgetHeight);
     }
 
     public static final Parcelable.Creator<AnimationRect> CREATOR =
@@ -42,6 +50,18 @@ public class AnimationRect implements Parcelable {
                     boolean[] booleans = new boolean[1];
                     in.readBooleanArray(booleans);
                     rect.clipped = booleans[0];
+
+                    boolean[] isScreenPortraitArray = new boolean[1];
+                    in.readBooleanArray(isScreenPortraitArray);
+                    rect.isScreenPortrait = isScreenPortraitArray[0];
+
+                    rect.thumbnailWidthHeightRatio = in.readFloat();
+                    rect.thumbnailWidth = in.readInt();
+                    rect.thumbnailHeight = in.readInt();
+
+                    rect.widgetWidth = in.readInt();
+                    rect.widgetHeight = in.readInt();
+
                     return rect;
                 }
 
@@ -72,8 +92,22 @@ public class AnimationRect implements Parcelable {
 
     public boolean clipped;
 
+    public boolean isScreenPortrait;
+
+    public float thumbnailWidthHeightRatio;
+
+    public int thumbnailWidth;
+
+    public int thumbnailHeight;
+
+    public int widgetWidth;
+
+    public int widgetHeight;
+
     public static AnimationRect buildFromImageView(ImageView imageView) {
         AnimationRect rect = new AnimationRect();
+
+        rect.isScreenPortrait = Utility.isDevicePort();
 
         Drawable drawable = imageView.getDrawable();
         Bitmap bitmap = null;
@@ -86,6 +120,17 @@ public class AnimationRect implements Parcelable {
         }
 
         rect.imageViewRect = new Rect();
+
+        rect.widgetWidth = imageView.getWidth();
+
+        rect.widgetHeight = imageView.getHeight();
+
+        rect.thumbnailWidthHeightRatio = (float) bitmap.getWidth() / (float) bitmap.getHeight();
+
+        rect.thumbnailWidth = bitmap.getWidth();
+
+        rect.thumbnailHeight = bitmap.getHeight();
+
         boolean result = imageView.getGlobalVisibleRect(rect.imageViewRect);
 
         boolean checkWidth = rect.imageViewRect.width() < imageView.getWidth();
@@ -101,7 +146,7 @@ public class AnimationRect implements Parcelable {
         int bitmapHeight = bitmap.getHeight();
 
         int imageViewWidth = imageView.getWidth();
-        int imageviewHeight = imageView.getHeight();
+        int imageViewHeight = imageView.getHeight();
 
         float startScale;
 
@@ -113,13 +158,13 @@ public class AnimationRect implements Parcelable {
             case CENTER_CROP:
 
                 if ((float) imageViewWidth / bitmapWidth
-                        > (float) imageviewHeight / bitmapHeight) {
+                        > (float) imageViewHeight / bitmapHeight) {
 
                     startScale = (float) imageViewWidth / bitmapWidth;
                     rect.type = TYPE_CLIP_V;
 
                 } else {
-                    startScale = (float) imageviewHeight / bitmapHeight;
+                    startScale = (float) imageViewHeight / bitmapHeight;
                     rect.type = TYPE_CLIP_H;
                 }
 
@@ -127,7 +172,7 @@ public class AnimationRect implements Parcelable {
                 bitmapWidth = (int) (bitmapWidth * startScale);
 
                 deltaX = (imageViewWidth - bitmapWidth) / 2;
-                deltaY = (imageviewHeight - bitmapHeight) / 2;
+                deltaY = (imageViewHeight - bitmapHeight) / 2;
 
                 scaledBitmapRect.set(scaledBitmapRect.left + deltaX, scaledBitmapRect.top + deltaY,
                         scaledBitmapRect.right - deltaX,
@@ -144,9 +189,9 @@ public class AnimationRect implements Parcelable {
             case FIT_CENTER:
 
                 if ((float) imageViewWidth / bitmapWidth
-                        > (float) imageviewHeight / bitmapHeight) {
+                        > (float) imageViewHeight / bitmapHeight) {
                     // Extend start bounds horizontally
-                    startScale = (float) imageviewHeight / bitmapHeight;
+                    startScale = (float) imageViewHeight / bitmapHeight;
 
                     rect.type = TYPE_EXTEND_V;
 
@@ -159,7 +204,7 @@ public class AnimationRect implements Parcelable {
                 bitmapWidth = (int) (bitmapWidth * startScale);
 
                 deltaX = (imageViewWidth - bitmapWidth) / 2;
-                deltaY = (imageviewHeight - bitmapHeight) / 2;
+                deltaY = (imageViewHeight - bitmapHeight) / 2;
 
                 scaledBitmapRect.set(scaledBitmapRect.left + deltaX, scaledBitmapRect.top + deltaY,
                         scaledBitmapRect.right - deltaX,
