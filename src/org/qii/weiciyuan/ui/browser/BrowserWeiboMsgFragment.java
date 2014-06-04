@@ -1,6 +1,5 @@
 package org.qii.weiciyuan.ui.browser;
 
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.maps.MapsInitializer;
 
 import org.qii.weiciyuan.R;
@@ -190,13 +189,13 @@ public class BrowserWeiboMsgFragment extends AbstractAppFragment implements IRem
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
+//        try {
             if (hasGpsInfo()) {
                 MapsInitializer.initialize(getActivity());
             }
-        } catch (GooglePlayServicesNotAvailableException impossible) {
-                      /* Impossible */
-        }
+//        } catch (GooglePlayServicesNotAvailableException impossible) {
+//                      /* Impossible */
+//        }
     }
 
     @Override
