@@ -3,7 +3,6 @@ package org.qii.weiciyuan.support.asyncdrawable;
 import org.qii.weiciyuan.R;
 import org.qii.weiciyuan.bean.MessageBean;
 import org.qii.weiciyuan.bean.UserBean;
-import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.file.FileDownloaderHttpHelper;
 import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.file.FileManager;
@@ -205,11 +204,11 @@ public class TimeLineBitmapDownloader {
                 && view.getDrawable() instanceof BitmapDrawable
                 && ((BitmapDrawable) view.getDrawable() != null
                 && ((BitmapDrawable) view.getDrawable()).getBitmap() != null)) {
-            AppLogger.d("shouldReloadPicture=false");
+//            AppLogger.d("shouldReloadPicture=false");
             return false;
         } else {
             view.setTag(null);
-            AppLogger.d("shouldReloadPicture=true");
+//            AppLogger.d("shouldReloadPicture=true");
             return true;
         }
     }
@@ -241,7 +240,8 @@ public class TimeLineBitmapDownloader {
                 return;
             }
 
-            final ReadWorker newTask = new ReadWorker(view, urlKey, method, isMultiPictures);
+            final LocalOrNetworkChooseWorker newTask = new LocalOrNetworkChooseWorker(view, urlKey,
+                    method, isMultiPictures);
             PictureBitmapDrawable downloadedDrawable = new PictureBitmapDrawable(newTask);
             view.setImageDrawable(downloadedDrawable);
 
@@ -251,7 +251,7 @@ public class TimeLineBitmapDownloader {
                 public void run() {
 
                     if (getBitmapDownloaderTask(view) == newTask) {
-                        newTask.executeOnExecutor(MyAsyncTask.THREAD_POOL_EXECUTOR);
+                        newTask.executeOnNormal();
                     }
                     return;
 
@@ -300,7 +300,8 @@ public class TimeLineBitmapDownloader {
                 return;
             }
 
-            final ReadWorker newTask = new ReadWorker(view, urlKey, method, isMultiPictures);
+            final LocalOrNetworkChooseWorker newTask = new LocalOrNetworkChooseWorker(view, urlKey,
+                    method, isMultiPictures);
             PictureBitmapDrawable downloadedDrawable = new PictureBitmapDrawable(newTask);
             view.setImageDrawable(downloadedDrawable);
 
@@ -310,7 +311,7 @@ public class TimeLineBitmapDownloader {
                 public void run() {
 
                     if (getBitmapDownloaderTask(view.getImageView()) == newTask) {
-                        newTask.executeOnExecutor(MyAsyncTask.THREAD_POOL_EXECUTOR);
+                        newTask.executeOnNormal();
                     }
                     return;
 
@@ -490,8 +491,13 @@ public class TimeLineBitmapDownloader {
                 boolean downloaded = TaskCache.waitForPictureDownload(
                         url, new FileDownloaderHttpHelper.DownloadListener() {
                     @Override
-                    public void pushProgress(int progress, int max) {
-                        onProgressUpdate(progress, max);
+                    public void pushProgress(final int progress, final int max) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                onProgressUpdate(progress, max);
+                            }
+                        });
                     }
 
                     @Override

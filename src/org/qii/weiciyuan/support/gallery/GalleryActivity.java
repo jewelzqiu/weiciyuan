@@ -501,12 +501,12 @@ public class GalleryActivity extends Activity {
                 return null;
             }
 
-            boolean downloaded = TaskCache.waitForMsgDetailPictureDownload(url, downloadListener);
-            if (downloaded) {
-                return FileManager.getFilePathFromUrl(url, FileLocationMethod.picture_large);
-            } else {
-                return null;
-            }
+//            boolean downloaded = TaskCache.waitForMsgDetailPictureDownload(url, downloadListener);
+//            if (downloaded) {
+//                return FileManager.getFilePathFromUrl(url, FileLocationMethod.picture_large);
+//            } else {
+            return null;
+//            }
 
         }
 
