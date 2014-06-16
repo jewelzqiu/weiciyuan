@@ -389,6 +389,10 @@ public class ImageUtility {
                 return null;
             }
 
+            if (TextUtils.isEmpty(filePath)) {
+                return null;
+            }
+
             if (!filePath.endsWith(".jpg") && !filePath.endsWith(".gif") && !filePath
                     .endsWith(".png")) {
                 filePath = filePath + ".jpg";
@@ -495,6 +499,9 @@ public class ImageUtility {
     }
 
     public static boolean isThisBitmapCanRead(String path) {
+        if (TextUtils.isEmpty(path)) {
+            return false;
+        }
         File file = new File(path);
 
         if (!file.exists()) {
@@ -514,6 +521,7 @@ public class ImageUtility {
     }
 
     public static boolean isThisBitmapTooLargeToRead(String path) {
+
         File file = new File(path);
 
         if (!file.exists()) {
@@ -600,6 +608,11 @@ public class ImageUtility {
             }
 
             String filePath = FileManager.getFilePathFromUrl(url, method);
+
+            if (!ImageUtility.isThisBitmapCanRead(filePath)) {
+                return null;
+            }
+
             if (!filePath.endsWith(".jpg") && !filePath.endsWith(".gif")) {
                 filePath = filePath + ".jpg";
             }
