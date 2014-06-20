@@ -12,6 +12,7 @@ import org.qii.weiciyuan.support.file.FileLocationMethod;
 import org.qii.weiciyuan.support.file.FileManager;
 import org.qii.weiciyuan.support.imageutility.ImageUtility;
 import org.qii.weiciyuan.support.lib.AutoScrollListView;
+import org.qii.weiciyuan.support.lib.HeaderListView;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
 import org.qii.weiciyuan.support.lib.RecordOperationAppBroadcastReceiver;
 import org.qii.weiciyuan.support.settinghelper.SettingUtility;
@@ -68,6 +69,7 @@ import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -573,7 +575,7 @@ public class Utility {
 
     //to do getChildAt(0)
     public static TimeLinePosition getCurrentPositionFromListView(ListView listView) {
-        View view = listView.getChildAt(1);
+        View view = listView.getChildAt(0);
         int top = (view != null ? view.getTop() : 0);
         return new TimeLinePosition(listView.getFirstVisiblePosition(), top);
     }
@@ -719,6 +721,46 @@ public class Utility {
 
     public static View getListViewItemViewFromPosition(ListView listView, int position) {
         return listView.getChildAt(position - listView.getFirstVisiblePosition());
+    }
+
+    public static void setListViewSelectionFromTop(final ListView listView,
+            final int positionAfterRefresh, final int top, final Runnable runnable) {
+        listView.getViewTreeObserver()
+                .addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                    @Override
+                    public boolean onPreDraw() {
+                        listView.getViewTreeObserver().removeOnPreDrawListener(this);
+                        listView.setSelectionFromTop(positionAfterRefresh, top);
+                        if (runnable != null) {
+                            runnable.run();
+                        }
+                        return false;
+                    }
+                });
+    }
+
+    public static void setListViewSelectionFromTop(final ListView listView,
+            final int positionAfterRefresh, final int top) {
+        setListViewSelectionFromTop(listView, positionAfterRefresh, top, null);
+    }
+
+    public static View getListViewFirstAdapterItemView(ListView listView) {
+        if (listView instanceof HeaderListView) {
+            HeaderListView headerListView = (HeaderListView) listView;
+            int childCount = headerListView.getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                View childView = headerListView.getChildAt(i);
+                if (!headerListView.isThisViewHeader(childView)) {
+                    return childView;
+                }
+            }
+
+            //fallback to first view
+            AppLogger.v("all listview children are header view");
+            return headerListView.getChildAt(0);
+        }
+
+        return listView.getChildAt(0);
     }
 
     public static String getMotionEventStringName(MotionEvent event) {
@@ -1072,7 +1114,7 @@ public class Utility {
     public static void forceShowDialog(FragmentActivity activity, DialogFragment dialogFragment) {
         try {
             dialogFragment.show(activity.getSupportFragmentManager(), "");
-        activity.getSupportFragmentManager().executePendingTransactions();
+            activity.getSupportFragmentManager().executePendingTransactions();
         } catch (Exception ignored) {
 
         }
