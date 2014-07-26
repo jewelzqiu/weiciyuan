@@ -16,6 +16,7 @@ import org.qii.weiciyuan.support.database.FriendsTimeLineDBTask;
 import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.error.WeiboException;
 import org.qii.weiciyuan.support.lib.HeaderListView;
+import org.qii.weiciyuan.support.lib.LogOnExceptionScheduledExecutor;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
 import org.qii.weiciyuan.support.lib.TopTipBar;
 import org.qii.weiciyuan.support.lib.VelocityListView;
@@ -59,7 +60,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -929,24 +929,24 @@ public class FriendsTimeLineFragment extends AbstractMessageTimeLineFragment<Mes
             return;
         }
 
-        int size = newValue.getSize();
-
         if (getActivity() != null && newValue.getSize() > 0) {
             getList().addMiddleData(position, newValue, towardsBottom);
 
-            if (towardsBottom) {
+            int finalSize = getList().getSize();
+
+            if (towardsBottom || SettingUtility.isReadStyleEqualWeibo()) {
                 getAdapter().notifyDataSetChanged();
             } else {
-
+                int initSize = getList().getSize();
                 int index = getListView().getFirstVisiblePosition();
                 View v = Utility.getListViewFirstAdapterItemView(getListView());
                 final int top = (v == null) ? 0 : v.getTop();
                 getAdapter().notifyDataSetChanged();
-                final int positionAfterRefresh = index + size;
+                final int positionAfterRefresh = index + finalSize - initSize;
                 Utility.setListViewSelectionFromTop(getListView(), positionAfterRefresh, top);
             }
-        }
 
+        }
     }
 
     private void addNewDataWithoutRememberPosition(MessageListBean newValue) {
@@ -1018,7 +1018,7 @@ public class FriendsTimeLineFragment extends AbstractMessageTimeLineFragment<Mes
 
     protected void addRefresh() {
 
-        autoRefreshExecutor = Executors.newSingleThreadScheduledExecutor();
+        autoRefreshExecutor = new LogOnExceptionScheduledExecutor(1);
         autoRefreshExecutor
                 .scheduleAtFixedRate(new AutoTask(), AppConfig.AUTO_REFRESH_INITIALDELAY,
                         AppConfig.AUTO_REFRESH_PERIOD, TimeUnit.SECONDS);
