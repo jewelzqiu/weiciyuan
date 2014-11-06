@@ -1,22 +1,23 @@
 package org.qii.weiciyuan.ui.preference;
 
+import org.qii.weiciyuan.R;
+import org.qii.weiciyuan.ui.interfaces.AbstractAppActivity;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.MenuItem;
-import org.qii.weiciyuan.R;
-import org.qii.weiciyuan.ui.interfaces.AbstractAppActivity;
 
 /**
  * User: qii
  * Date: 12-10-4
  */
-public class AppearanceActivity extends AbstractAppActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class AppearanceActivity extends AbstractAppActivity
+        implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         getActionBar().setDisplayShowHomeEnabled(false);
         getActionBar().setDisplayShowTitleEnabled(true);
@@ -29,10 +30,9 @@ public class AppearanceActivity extends AbstractAppActivity implements SharedPre
                     .commit();
         }
 
-        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
-
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(this);
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -50,7 +50,6 @@ public class AppearanceActivity extends AbstractAppActivity implements SharedPre
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
-
         if (key.equals(SettingActivity.THEME)) {
 
             Intent intent = new Intent(this, AppearanceActivity.class);
@@ -62,14 +61,13 @@ public class AppearanceActivity extends AbstractAppActivity implements SharedPre
             startActivity(intent);
             overridePendingTransition(R.anim.stay, R.anim.alphaout);
         }
-
-
     }
 
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .unregisterOnSharedPreferenceChangeListener(this);
         finish();
     }
 }

@@ -11,13 +11,12 @@ import org.qii.weiciyuan.bean.android.CommentTimeLineData;
 import org.qii.weiciyuan.bean.android.TimeLinePosition;
 import org.qii.weiciyuan.dao.destroy.DestroyCommentDao;
 import org.qii.weiciyuan.dao.unread.ClearUnreadDao;
-import org.qii.weiciyuan.othercomponent.unreadnotification.NotificationServiceHelper;
+import org.qii.weiciyuan.othercomponent.AppNotificationCenter;
 import org.qii.weiciyuan.support.database.CommentToMeTimeLineDBTask;
+import org.qii.weiciyuan.support.debug.AppLogger;
 import org.qii.weiciyuan.support.error.WeiboException;
 import org.qii.weiciyuan.support.lib.MyAsyncTask;
 import org.qii.weiciyuan.support.lib.TopTipBar;
-import org.qii.weiciyuan.support.utils.AppEventAction;
-import org.qii.weiciyuan.support.utils.BundleArgsConstants;
 import org.qii.weiciyuan.support.utils.GlobalContext;
 import org.qii.weiciyuan.support.utils.Utility;
 import org.qii.weiciyuan.ui.actionmenu.CommentFloatingMenu;
@@ -31,20 +30,17 @@ import org.qii.weiciyuan.ui.main.CommentsTimeLine;
 import org.qii.weiciyuan.ui.main.MainTimeLineActivity;
 
 import android.app.ActionBar;
-import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.List;
 
 /**
  * User: qii
@@ -53,21 +49,14 @@ import android.widget.Toast;
 public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<CommentListBean>
         implements IRemoveItem {
 
-
     private AccountBean accountBean;
-
     private UserBean userBean;
-
     private String token;
 
-    private RemoveTask removeTask;
-
     private CommentListBean bean = new CommentListBean();
-
-    private UnreadBean unreadBean;
-
     private TimeLinePosition timeLinePosition;
 
+    private RemoveTask removeTask;
 
     @Override
     public CommentListBean getList() {
@@ -96,18 +85,15 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
         outState.putParcelable("account", accountBean);
         outState.putParcelable("userBean", userBean);
         outState.putString("token", token);
 
         if (getActivity().isChangingConfigurations()) {
             outState.putParcelable("bean", bean);
-            outState.putParcelable("unreadBean", unreadBean);
             outState.putSerializable("timeLinePosition", timeLinePosition);
         }
     }
-
 
     @Override
     protected void onListViewScrollStop() {
@@ -119,18 +105,14 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
     public void onResume() {
         super.onResume();
         setListViewPositionFromPositionsCache();
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(newBroadcastReceiver,
-                new IntentFilter(AppEventAction.NEW_MSG_BROADCAST));
-        setActionBarTabCount(newMsgTipBar.getValues().size());
-
+        showUIUnreadCount(newMsgTipBar.getValues().size());
         newMsgTipBar.setOnChangeListener(new TopTipBar.OnChangeListener() {
             @Override
             public void onChange(int count) {
-                ((MainTimeLineActivity) getActivity()).setCommentsToMeCount(count);
-                setActionBarTabCount(count);
+
+                showUIUnreadCount(newMsgTipBar.getValues().size());
             }
         });
-        checkUnreadInfo();
     }
 
     @Override
@@ -139,34 +121,30 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
         if (!getActivity().isChangingConfigurations()) {
             saveTimeLinePositionToDB();
         }
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(newBroadcastReceiver);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        AppNotificationCenter.getInstance().removeCallback(callback);
     }
 
     private void saveTimeLinePositionToDB() {
-        timeLinePosition = Utility.getCurrentPositionFromListView(getListView());
-        timeLinePosition.newMsgIds = newMsgTipBar.getValues();
-        CommentToMeTimeLineDBTask.asyncUpdatePosition(timeLinePosition, accountBean.getUid());
-    }
+        TimeLinePosition current = Utility.getCurrentPositionFromListView(getListView());
 
-
-    private void checkUnreadInfo() {
-        Loader loader = getLoaderManager().getLoader(DB_CACHE_LOADER_ID);
-        if (loader != null) {
-            return;
+        if (!current.isEmpty()) {
+            timeLinePosition = current;
+            timeLinePosition.newMsgIds = newMsgTipBar.getValues();
+            AppLogger.i("Current ListView position first visible item id " + current.firstItemId
+                    + " , save to memory cache");
+        } else {
+            AppLogger
+                    .i("Cant get correct current ListView position, so use previous database data");
         }
-        Intent intent = getActivity().getIntent();
-        AccountBean intentAccount = intent
-                .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
-        CommentListBean commentsToMe = intent
-                .getParcelableExtra(BundleArgsConstants.COMMENTS_TO_ME_EXTRA);
-        UnreadBean unreadBeanFromNotification = intent
-                .getParcelableExtra(BundleArgsConstants.UNREAD_EXTRA);
-        if (accountBean.equals(intentAccount) && commentsToMe != null) {
-            addUnreadMessage(commentsToMe);
-            clearUnreadComment(unreadBeanFromNotification);
-            CommentListBean nullObject = null;
-            intent.putExtra(BundleArgsConstants.COMMENTS_TO_ME_EXTRA, nullObject);
-            getActivity().setIntent(intent);
+
+        if (timeLinePosition != null) {
+            CommentToMeTimeLineDBTask
+                    .asyncUpdatePosition(timeLinePosition, accountBean.getUid());
         }
     }
 
@@ -189,10 +167,23 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
         }
     }
 
+    private void setLeftMenuUnreadCount(int count) {
+        MainTimeLineActivity mainTimeLineActivity = (MainTimeLineActivity) getActivity();
+        if (mainTimeLineActivity == null) {
+            return;
+        }
+
+        mainTimeLineActivity.setCommentsToMeCount(count);
+    }
+
+    private void showUIUnreadCount(int count) {
+        setActionBarTabCount(count);
+        setLeftMenuUnreadCount(count);
+    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         switch (getCurrentState(savedInstanceState)) {
             case FIRST_TIME_START:
                 getLoaderManager().initLoader(DB_CACHE_LOADER_ID, null, dbCallback);
@@ -203,7 +194,6 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
                 token = savedInstanceState.getString("token");
                 timeLinePosition = (TimeLinePosition) savedInstanceState
                         .getSerializable("timeLinePosition");
-                unreadBean = (UnreadBean) savedInstanceState.getParcelable("unreadBean");
 
                 Loader<CommentTimeLineData> loader = getLoaderManager()
                         .getLoader(DB_CACHE_LOADER_ID);
@@ -218,13 +208,12 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
                     timeLineAdapter.notifyDataSetChanged();
                     refreshLayout(getList());
 //                    setListViewPositionFromPositionsCache();
+                    AppNotificationCenter.getInstance().addCallback(callback);
                 } else {
                     getLoaderManager().initLoader(DB_CACHE_LOADER_ID, null, dbCallback);
-
                 }
                 break;
         }
-
     }
 
     @Override
@@ -282,11 +271,8 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
     class RemoveTask extends MyAsyncTask<Void, Void, Boolean> {
 
         String token;
-
         String id;
-
         int positon;
-
         WeiboException e;
 
         public RemoveTask(String token, String id, int positon) {
@@ -320,11 +306,9 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
             super.onPostExecute(aBoolean);
             if (aBoolean) {
                 ((CommentListAdapter) timeLineAdapter).removeItem(positon);
-
             }
         }
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -333,26 +317,27 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
     }
 
     private void setListViewPositionFromPositionsCache() {
-        Utility.setListViewSelectionFromTop(getListView(),
-                timeLinePosition != null ? timeLinePosition.position : 0,
-                timeLinePosition != null ? timeLinePosition.top : 0, new Runnable() {
+        AppLogger.i("Memory cached position first visible item id " + (timeLinePosition != null
+                ? timeLinePosition.firstItemId : 0));
+        int position =
+                timeLinePosition != null ? timeLinePosition.getPosition(bean) : 0;
+        int top = timeLinePosition != null ? timeLinePosition.top : 0;
+        AppLogger.i("Set ListView position from memory cached position position " + position
+                + " top " + top);
+        Utility.setListViewAdapterPosition(getListView(), position, top, new Runnable() {
             @Override
             public void run() {
                 setListViewUnreadTipBar(timeLinePosition);
             }
         });
-
     }
 
     private void setListViewUnreadTipBar(TimeLinePosition p) {
         if (p != null && p.newMsgIds != null) {
             newMsgTipBar.setValue(p.newMsgIds);
-            setActionBarTabCount(newMsgTipBar.getValues().size());
-            ((MainTimeLineActivity) getActivity())
-                    .setCommentsToMeCount(newMsgTipBar.getValues().size());
+            showUIUnreadCount(newMsgTipBar.getValues().size());
         }
     }
-
 
     @Override
     protected void buildListAdapter() {
@@ -364,7 +349,6 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
         pullToRefreshListView.setAdapter(timeLineAdapter);
     }
 
-
     protected void listViewItemClick(AdapterView parent, View view, int position, long id) {
         if (!clearActionModeIfOpen()) {
             CommentFloatingMenu menu = new CommentFloatingMenu(getList().getItem(position));
@@ -372,55 +356,71 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
         }
     }
 
-
     @Override
     protected void newMsgLoaderSuccessCallback(CommentListBean newValue, Bundle loaderArgs) {
         if (newValue != null && newValue.getItemList() != null
                 && newValue.getItemList().size() > 0) {
-            addNewDataAndRememberPosition(newValue);
+            addNewDataAndRememberPosition(newValue, false);
         }
-        unreadBean = null;
-        NotificationManager notificationManager = (NotificationManager) getActivity()
-                .getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancel(NotificationServiceHelper
-                .getCommentsToMeNotificationId(GlobalContext.getInstance().getAccountBean()));
     }
 
-    private void addNewDataAndRememberPosition(final CommentListBean newValue) {
-
-        int initSize = getList().getSize();
-
-        if (getActivity() != null && newValue.getSize() > 0) {
-
-            final boolean jumpToTop = getList().getSize() == 0;
-
-            getList().addNewData(newValue);
-
-            if (!jumpToTop) {
-                int index = getListView().getFirstVisiblePosition();
-                getAdapter().notifyDataSetChanged();
-                int finalSize = getList().getSize();
-                final int positionAfterRefresh = index + finalSize - initSize + getListView()
-                        .getHeaderViewsCount();
-                //use 1 px to show newMsgTipBar
-                Utility.setListViewSelectionFromTop(getListView(),
-                        positionAfterRefresh, 1,
-                        new Runnable() {
-
-                            @Override
-                            public void run() {
-                                newMsgTipBar.setValue(newValue, jumpToTop);
-                            }
-                        });
-            } else {
-                newMsgTipBar.setValue(newValue, jumpToTop);
-                newMsgTipBar.clearAndReset();
-                getAdapter().notifyDataSetChanged();
-                getListView().setSelection(0);
-            }
-            CommentToMeTimeLineDBTask.asyncReplace(getList(), accountBean.getUid());
-            saveTimeLinePositionToDB();
+    private void addNewDataAndRememberPosition(final CommentListBean newValue, boolean ignored
+/**unused**/) {
+        AppLogger.i("Add new unread data to memory cache");
+        if (getActivity() == null || newValue.getSize() == 0) {
+            AppLogger.i("Activity is destroyed or new data count is zero, give up");
+            return;
         }
+
+        final boolean isDataSourceEmpty = getList().getSize() == 0;
+        TimeLinePosition previousPosition = Utility.getCurrentPositionFromListView(getListView());
+        getList().addNewData(newValue);
+        if (isDataSourceEmpty) {
+            newMsgTipBar.setValue(newValue, true);
+            newMsgTipBar.clearAndReset();
+            getAdapter().notifyDataSetChanged();
+            AppLogger
+                    .i("Init data source is empty, ListView jump to zero position after refresh, first time open app? ");
+            getListView().setSelection(0);
+            saveTimeLinePositionToDB();
+        } else {
+
+            if (previousPosition.isEmpty() && timeLinePosition != null) {
+                previousPosition = timeLinePosition;
+            }
+            AppLogger.i("Previous first visible item id " + previousPosition.firstItemId);
+            getAdapter().notifyDataSetChanged();
+            List<CommentBean> unreadData = newValue.getItemList();
+            for (CommentBean comment : unreadData) {
+                if (comment != null) {
+                    CommentsToMeTimeLineFragment.this.timeLinePosition.newMsgIds
+                            .add(comment.getIdLong());
+                }
+            }
+            newMsgTipBar
+                    .setValue(
+                            CommentsToMeTimeLineFragment.this.timeLinePosition.newMsgIds);
+            int positionInAdapter = Utility.getAdapterPositionFromItemId(getAdapter(),
+                    previousPosition.firstItemId);
+            //use 1 px to show newMsgTipBar
+            AppLogger.i("ListView restore to previous position " + positionInAdapter);
+            getListView().getViewTreeObserver().addOnGlobalLayoutListener(
+                    new ViewTreeObserver.OnGlobalLayoutListener() {
+                        @Override
+                        public void onGlobalLayout() {
+                            getListView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                            AppLogger.i("Save ListView position to database");
+                            saveTimeLinePositionToDB();
+                        }
+                    });
+            Utility.setListViewAdapterPosition(getListView(), positionInAdapter,
+                    previousPosition.top - 1,
+                    null);
+        }
+
+        showUIUnreadCount(
+                CommentsToMeTimeLineFragment.this.timeLinePosition.newMsgIds.size());
+        CommentToMeTimeLineDBTask.asyncReplace(getList(), accountBean.getUid());
     }
 
     @Override
@@ -435,28 +435,12 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
     @Override
     protected void middleMsgLoaderSuccessCallback(int position, CommentListBean newValue,
             boolean towardsBottom) {
-
-        if (newValue != null) {
-            int size = newValue.getSize();
-
-            if (getActivity() != null && newValue.getSize() > 0) {
-                getList().addMiddleData(position, newValue, towardsBottom);
-
-                if (towardsBottom) {
-                    getAdapter().notifyDataSetChanged();
-                } else {
-
-                    View v = Utility
-                            .getListViewItemViewFromPosition(getListView(), position + 1 + 1);
-                    int top = (v == null) ? 0 : v.getTop();
-                    getAdapter().notifyDataSetChanged();
-                    int ss = position + 1 + size - 1;
-                    getListView().setSelectionFromTop(ss, top);
-                }
-            }
+        if (getActivity() != null && newValue != null && newValue.getSize() > 0) {
+            getList().addMiddleData(position, newValue, towardsBottom);
+            getAdapter().notifyDataSetChanged();
+            CommentToMeTimeLineDBTask.asyncReplace(getList(), accountBean.getUid());
         }
     }
-
 
     private LoaderManager.LoaderCallbacks<CommentTimeLineData> dbCallback
             = new LoaderManager.LoaderCallbacks<CommentTimeLineData>() {
@@ -488,7 +472,7 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
             }
             getLoaderManager().destroyLoader(loader.getId());
 
-            checkUnreadInfo();
+            AppNotificationCenter.getInstance().addCallback(callback);
         }
 
         @Override
@@ -528,20 +512,18 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
         return new CommentsToMeMsgLoader(getActivity(), accountId, token, null, maxId);
     }
 
-    private BroadcastReceiver newBroadcastReceiver = new BroadcastReceiver() {
+    private AppNotificationCenter.Callback callback = new AppNotificationCenter.Callback() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            final AccountBean intentAccount = (AccountBean) intent
-                    .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
-            final UnreadBean unreadBean = (UnreadBean) intent
-                    .getParcelableExtra(BundleArgsConstants.UNREAD_EXTRA);
-            if (intentAccount == null || !accountBean.equals(intentAccount)) {
+        public void unreadCommentsChanged(AccountBean account, CommentListBean data) {
+            super.unreadCommentsChanged(account, data);
+            if (!accountBean.equals(account)) {
                 return;
             }
-            CommentListBean data = (CommentListBean) intent
-                    .getParcelableExtra(BundleArgsConstants.COMMENTS_TO_ME_EXTRA);
+
+            AppLogger.i("Receive new unread comments, comment count " + data.getSize());
+
             addUnreadMessage(data);
-            clearUnreadComment(unreadBean);
+            clearUnreadComment(AppNotificationCenter.getInstance().getUnreadBean(account));
         }
     };
 
@@ -550,7 +532,7 @@ public class CommentsToMeTimeLineFragment extends AbstractTimeLineFragment<Comme
             CommentBean last = data.getItem(data.getSize() - 1);
             boolean dup = getList().getItemList().contains(last);
             if (!dup) {
-                addNewDataAndRememberPosition(data);
+                addNewDataAndRememberPosition(data, true);
             }
         }
     }

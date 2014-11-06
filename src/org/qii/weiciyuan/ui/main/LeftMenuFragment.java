@@ -20,6 +20,7 @@ import org.qii.weiciyuan.ui.interfaces.AbstractAppFragment;
 import org.qii.weiciyuan.ui.login.AccountActivity;
 import org.qii.weiciyuan.ui.maintimeline.FriendsTimeLineFragment;
 import org.qii.weiciyuan.ui.nearby.NearbyTimeLineActivity;
+import org.qii.weiciyuan.ui.preference.SettingActivity;
 import org.qii.weiciyuan.ui.preference.SettingFragment;
 import org.qii.weiciyuan.ui.search.SearchMainParentFragment;
 import org.qii.weiciyuan.ui.userinfo.MyFavListFragment;
@@ -60,38 +61,25 @@ public class LeftMenuFragment extends AbstractAppFragment {
     private int currentIndex = -1;
 
     private int mentionsWeiboUnreadCount = 0;
-
     private int mentionsCommentUnreadCount = 0;
-
     private int commentsToMeUnreadCount = 0;
 
     public int commentsTabIndex = -1;
-
     public int mentionsTabIndex = -1;
-
     public int searchTabIndex = -1;
-
 
     private boolean firstStart = true;
 
     private SparseArray<Fragment> rightFragments = new SparseArray<Fragment>();
 
     public static final int HOME_INDEX = 0;
-
     public static final int MENTIONS_INDEX = 1;
-
     public static final int COMMENTS_INDEX = 2;
-
     public static final int DM_INDEX = 3;
-
     public static final int FAV_INDEX = 4;
-
     public static final int SEARCH_INDEX = 5;
-
     public static final int PROFILE_INDEX = 6;
-
     public static final int LOGOUT_INDEX = 7;
-
     public static final int SETTING_INDEX = 8;
 
     public static LeftMenuFragment newInstance() {
@@ -155,7 +143,6 @@ public class LeftMenuFragment extends AbstractAppFragment {
     }
 
     public void switchCategory(int position) {
-
         switch (position) {
             case HOME_INDEX:
                 showHomePage(true);
@@ -179,7 +166,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
                 showProfilePage(true);
                 break;
             case SETTING_INDEX:
-                showSettingPage(true);
+                showSettingPage();
                 break;
         }
         drawButtonsBackground(position);
@@ -217,13 +204,15 @@ public class LeftMenuFragment extends AbstractAppFragment {
         setCommentUnreadCount(commentsToMeUnreadCount);
     }
 
-
     private void showAccountSwitchPage() {
         Intent intent = AccountActivity.newIntent();
         startActivity(intent);
         getActivity().finish();
     }
 
+    private void showSettingPage() {
+        startActivity(new Intent(getActivity(), SettingActivity.class));
+    }
 
     private boolean showHomePage(boolean reset) {
         if (currentIndex == HOME_INDEX && !reset) {
@@ -242,14 +231,12 @@ public class LeftMenuFragment extends AbstractAppFragment {
                     if (currentIndex == HOME_INDEX) {
                         showHomePageImp();
                     }
-
                 }
             };
             LocalBroadcastManager.getInstance(getActivity()).registerReceiver(receiver,
                     new IntentFilter(AppEventAction.SLIDING_MENU_CLOSED_BROADCAST));
         } else {
             showHomePageImp();
-
         }
 
         ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
@@ -336,7 +323,6 @@ public class LeftMenuFragment extends AbstractAppFragment {
         return currentIndex;
     }
 
-
     private boolean showCommentPage(boolean reset) {
         getActivity().getActionBar().setDisplayShowTitleEnabled(true);
         if (currentIndex == COMMENTS_INDEX && !reset) {
@@ -354,14 +340,12 @@ public class LeftMenuFragment extends AbstractAppFragment {
                     if (currentIndex == COMMENTS_INDEX) {
                         showCommentPageImp();
                     }
-
                 }
             };
             LocalBroadcastManager.getInstance(getActivity()).registerReceiver(receiver,
                     new IntentFilter(AppEventAction.SLIDING_MENU_CLOSED_BROADCAST));
         } else {
             showCommentPageImp();
-
         }
 
         ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
@@ -397,7 +381,6 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ((CommentsTimeLine) fragment).buildActionBarAndViewPagerTitles(commentsTabIndex);
     }
 
-
     private boolean showSearchPage(boolean reset) {
         getActivity().getActionBar().setDisplayShowTitleEnabled(true);
         if (currentIndex == SEARCH_INDEX && !reset) {
@@ -415,14 +398,12 @@ public class LeftMenuFragment extends AbstractAppFragment {
                     if (currentIndex == SEARCH_INDEX) {
                         showSearchPageImp();
                     }
-
                 }
             };
             LocalBroadcastManager.getInstance(getActivity()).registerReceiver(receiver,
                     new IntentFilter(AppEventAction.SLIDING_MENU_CLOSED_BROADCAST));
         } else {
             showSearchPageImp();
-
         }
 
         ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
@@ -457,9 +438,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
         ft.commit();
 
         ((SearchMainParentFragment) fragment).buildActionBarAndViewPagerTitles(searchTabIndex);
-
     }
-
 
     private boolean showDMPage(boolean reset) {
         getActivity().getActionBar().setDisplayShowTitleEnabled(true);
@@ -478,14 +457,12 @@ public class LeftMenuFragment extends AbstractAppFragment {
                     if (currentIndex == DM_INDEX) {
                         showDMPageImp();
                     }
-
                 }
             };
             LocalBroadcastManager.getInstance(getActivity()).registerReceiver(receiver,
                     new IntentFilter(AppEventAction.SLIDING_MENU_CLOSED_BROADCAST));
         } else {
             showDMPageImp();
-
         }
 
         ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
@@ -529,14 +506,12 @@ public class LeftMenuFragment extends AbstractAppFragment {
                     if (currentIndex == FAV_INDEX) {
                         showFavPageImp();
                     }
-
                 }
             };
             LocalBroadcastManager.getInstance(getActivity()).registerReceiver(receiver,
                     new IntentFilter(AppEventAction.SLIDING_MENU_CLOSED_BROADCAST));
         } else {
             showFavPageImp();
-
         }
 
         ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
@@ -579,14 +554,12 @@ public class LeftMenuFragment extends AbstractAppFragment {
                     if (currentIndex == PROFILE_INDEX) {
                         showProfilePageImp();
                     }
-
                 }
             };
             LocalBroadcastManager.getInstance(getActivity()).registerReceiver(receiver,
                     new IntentFilter(AppEventAction.SLIDING_MENU_CLOSED_BROADCAST));
         } else {
             showProfilePageImp();
-
         }
 
         ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
@@ -615,53 +588,53 @@ public class LeftMenuFragment extends AbstractAppFragment {
                 .translateFragmentY(fragment, -400, 0, fragment);
     }
 
-    private boolean showSettingPage(boolean reset) {
-        getActivity().getActionBar().setDisplayShowTitleEnabled(true);
-        if (currentIndex == SETTING_INDEX && !reset) {
-            ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
-            return true;
-        }
-        getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
-
-        currentIndex = SETTING_INDEX;
-        if (Utility.isDevicePort() && !reset) {
-            BroadcastReceiver receiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(this);
-                    if (currentIndex == SETTING_INDEX)
-                        showSettingPageImp();
-
-                }
-            };
-            LocalBroadcastManager.getInstance(getActivity()).registerReceiver(receiver, new IntentFilter(AppEventAction.SLIDING_MENU_CLOSED_BROADCAST));
-        } else {
-            showSettingPageImp();
-        }
-
-        ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
-
-        return false;
-    }
-
-    private void showSettingPageImp() {
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-
-        ft.hide(rightFragments.get(HOME_INDEX));
-        ft.hide(rightFragments.get(MENTIONS_INDEX));
-        ft.hide(rightFragments.get(COMMENTS_INDEX));
-        ft.hide(rightFragments.get(SEARCH_INDEX));
-        ft.hide(rightFragments.get(DM_INDEX));
-        ft.hide(rightFragments.get(FAV_INDEX));
-        ft.hide(rightFragments.get(PROFILE_INDEX));
-
-        Fragment fragment = rightFragments.get(SETTING_INDEX);
-
-        ft.show(fragment);
-        ft.commit();
-        ((MainTimeLineActivity) getActivity()).setCurrentFragment((MainTimeLineActivity.ScrollableListFragment) fragment);
-        ((SettingFragment) fragment).buildActionBarAndViewPagerTitles();
-    }
+//    private boolean showSettingPage(boolean reset) {
+//        getActivity().getActionBar().setDisplayShowTitleEnabled(true);
+//        if (currentIndex == SETTING_INDEX && !reset) {
+//            ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
+//            return true;
+//        }
+//        getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+//
+//        currentIndex = SETTING_INDEX;
+//        if (Utility.isDevicePort() && !reset) {
+//            BroadcastReceiver receiver = new BroadcastReceiver() {
+//                @Override
+//                public void onReceive(Context context, Intent intent) {
+//                    LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(this);
+//                    if (currentIndex == SETTING_INDEX)
+//                        showSettingPageImp();
+//
+//                }
+//            };
+//            LocalBroadcastManager.getInstance(getActivity()).registerReceiver(receiver, new IntentFilter(AppEventAction.SLIDING_MENU_CLOSED_BROADCAST));
+//        } else {
+//            showSettingPageImp();
+//        }
+//
+//        ((MainTimeLineActivity) getActivity()).getSlidingMenu().showContent();
+//
+//        return false;
+//    }
+//
+//    private void showSettingPageImp() {
+//        FragmentTransaction ft = getFragmentManager().beginTransaction();
+//
+//        ft.hide(rightFragments.get(HOME_INDEX));
+//        ft.hide(rightFragments.get(MENTIONS_INDEX));
+//        ft.hide(rightFragments.get(COMMENTS_INDEX));
+//        ft.hide(rightFragments.get(SEARCH_INDEX));
+//        ft.hide(rightFragments.get(DM_INDEX));
+//        ft.hide(rightFragments.get(FAV_INDEX));
+//        ft.hide(rightFragments.get(PROFILE_INDEX));
+//
+//        Fragment fragment = rightFragments.get(SETTING_INDEX);
+//
+//        ft.show(fragment);
+//        ft.commit();
+//        ((MainTimeLineActivity) getActivity()).setCurrentFragment((MainTimeLineActivity.ScrollableListFragment) fragment);
+//        ((SettingFragment) fragment).buildActionBarAndViewPagerTitles();
+//    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -754,7 +727,7 @@ public class LeftMenuFragment extends AbstractAppFragment {
                     drawButtonsBackground(DM_INDEX);
                     break;
                 case R.id.btn_setting:
-                    showSettingPage(false);
+                    showSettingPage();
                     drawButtonsBackground(SETTING_INDEX);
                     break;
                 case R.id.btn_logout:
@@ -866,7 +839,6 @@ public class LeftMenuFragment extends AbstractAppFragment {
     private class AvatarAdapter extends BaseAdapter {
 
         ArrayList<AccountBean> data = new ArrayList<AccountBean>();
-
         int count = 0;
 
         public AvatarAdapter(Spinner spinner) {
@@ -885,7 +857,6 @@ public class LeftMenuFragment extends AbstractAppFragment {
                     break;
                 }
             }
-
         }
 
         @Override
@@ -937,7 +908,6 @@ public class LeftMenuFragment extends AbstractAppFragment {
                         Intent start = MainTimeLineActivity.newIntent(accountBean);
                         getActivity().startActivity(start);
                         getActivity().finish();
-
                     }
                 });
             } else {
@@ -950,36 +920,20 @@ public class LeftMenuFragment extends AbstractAppFragment {
     }
 
     private class Layout {
-
         Spinner avatar;
-
         TextView nickname;
-
         LinearLayout home;
-
         LinearLayout mention;
-
         LinearLayout comment;
-
         TextView homeCount;
-
         TextView mentionCount;
-
         TextView commentCount;
-
         Button search;
-
         //        Button location;
         Button dm;
-
         Button logout;
-
         Button profile;
-
         Button setting;
-
         Button fav;
     }
-
-
 }

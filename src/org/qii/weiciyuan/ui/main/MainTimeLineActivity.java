@@ -50,7 +50,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * User: Jiang Qi
@@ -59,25 +58,19 @@ import android.widget.Toast;
 public class MainTimeLineActivity extends MainTimeLineParentActivity {
 
     public static final int REQUEST_CODE_UPDATE_FRIENDS_TIMELINE_COMMENT_REPOST_COUNT = 0;
-
     public static final int REQUEST_CODE_UPDATE_MENTIONS_WEIBO_TIMELINE_COMMENT_REPOST_COUNT = 1;
-
     public static final int REQUEST_CODE_UPDATE_MY_FAV_TIMELINE_COMMENT_REPOST_COUNT = 2;
 
     private AccountBean accountBean;
 
     private NewMsgInterruptBroadcastReceiver newMsgInterruptBroadcastReceiver;
-
     private MusicReceiver musicReceiver;
 
     private ScrollableListFragment currentFragment;
-
     private TextView titleText;
-
     private View clickToTop;
 
     public static interface ScrollableListFragment {
-
         public void scrollToTop();
     }
 
@@ -110,7 +103,6 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         return accountBean.getAccess_token();
     }
 
-
     public void setTitle(String title) {
         if (TextUtils.isEmpty(title)) {
             titleText.setVisibility(View.GONE);
@@ -127,7 +119,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable("account", accountBean);
+        outState.putParcelable(BundleArgsConstants.ACCOUNT_EXTRA, accountBean);
     }
 
     @Override
@@ -135,7 +127,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
-            accountBean = savedInstanceState.getParcelable("account");
+            accountBean = savedInstanceState.getParcelable(BundleArgsConstants.ACCOUNT_EXTRA);
         } else {
             Intent intent = getIntent();
             accountBean = intent
@@ -151,9 +143,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         SettingUtility.setDefaultAccountId(accountBean.getUid());
 
         buildInterface(savedInstanceState);
-
     }
-
 
     private void buildInterface(Bundle savedInstanceState) {
         getActionBar().setTitle(GlobalContext.getInstance().getCurrentAccountName());
@@ -198,12 +188,10 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         if (!mentions.isAdded()) {
             fragmentTransaction.add(R.id.menu_right_fl, mentions, MentionsTimeLine.class.getName());
             fragmentTransaction.hide(mentions);
-
         }
         if (!comments.isAdded()) {
             fragmentTransaction.add(R.id.menu_right_fl, comments, CommentsTimeLine.class.getName());
             fragmentTransaction.hide(comments);
-
         }
 
         if (!fav.isAdded()) {
@@ -230,13 +218,11 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
                 fragmentTransaction
                         .add(R.id.menu_right_fl, search, SearchMainParentFragment.class.getName());
                 fragmentTransaction.hide(search);
-
             }
 
             if (!dm.isAdded()) {
                 fragmentTransaction.add(R.id.menu_right_fl, dm, DMUserListFragment.class.getName());
                 fragmentTransaction.hide(dm);
-
             }
         }
 
@@ -326,7 +312,6 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         getSlidingMenu().setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE);
     }
 
-
     private void scrollCurrentListViewToTop() {
         if (this.currentFragment != null) {
             this.currentFragment.scrollToTop();
@@ -376,9 +361,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
             startActivity(intent);
             overridePendingTransition(0, 0);
         }
-
     }
-
 
     @Override
     public void onBackPressed() {
@@ -406,17 +389,13 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
     public UserBean getUser() {
         return accountBean.getInfo();
-
     }
-
 
     public AccountBean getAccount() {
         return accountBean;
     }
-
 
     private void readClipboard() {
         ClipboardManager cm = (ClipboardManager) getApplicationContext().getSystemService(
@@ -532,7 +511,6 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
                 .updateNavigationPosition(GlobalContext.getInstance().getAccountBean(), result);
     }
 
-
     public LeftMenuFragment getMenuFragment() {
         LeftMenuFragment fragment = ((LeftMenuFragment) getSupportFragmentManager()
                 .findFragmentByTag(
@@ -542,7 +520,6 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         }
         return fragment;
     }
-
 
     public FriendsTimeLineFragment getFriendsTimeLineFragment() {
         FriendsTimeLineFragment fragment = ((FriendsTimeLineFragment) getSupportFragmentManager()
@@ -633,26 +610,25 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         public void onReceive(Context context, Intent intent) {
             AccountBean intentAccount = intent
                     .getParcelableExtra(BundleArgsConstants.ACCOUNT_EXTRA);
-            if (accountBean.equals(intentAccount)) {
-                MessageListBean mentionsWeibo = intent
-                        .getParcelableExtra(BundleArgsConstants.MENTIONS_WEIBO_EXTRA);
-                CommentListBean mentionsComment = intent
-                        .getParcelableExtra(BundleArgsConstants.MENTIONS_COMMENT_EXTRA);
-                CommentListBean commentsToMe = intent
-                        .getParcelableExtra(BundleArgsConstants.COMMENTS_TO_ME_EXTRA);
-                int unreadCount = (mentionsWeibo != null ? mentionsWeibo.getSize() : 0) + (
-                        mentionsComment != null ? mentionsComment.getSize() : 0) + (
-                        commentsToMe != null ? commentsToMe
-                                .getSize() : 0);
-                String tip = String.format(context.getString(R.string.you_have_new_unread_count),
-                        String.valueOf(unreadCount));
-                Toast.makeText(MainTimeLineActivity.this, tip,
-                        Toast.LENGTH_LONG).show();
-                abortBroadcast();
-            }
+//            if (accountBean.equals(intentAccount)) {
+//                MessageListBean mentionsWeibo = intent
+//                        .getParcelableExtra(BundleArgsConstants.MENTIONS_WEIBO_EXTRA);
+//                CommentListBean mentionsComment = intent
+//                        .getParcelableExtra(BundleArgsConstants.MENTIONS_COMMENT_EXTRA);
+//                CommentListBean commentsToMe = intent
+//                        .getParcelableExtra(BundleArgsConstants.COMMENTS_TO_ME_EXTRA);
+//                int unreadCount = (mentionsWeibo != null ? mentionsWeibo.getSize() : 0) + (
+//                        mentionsComment != null ? mentionsComment.getSize() : 0) + (
+//                        commentsToMe != null ? commentsToMe
+//                                .getSize() : 0);
+//                String tip = String.format(context.getString(R.string.you_have_new_unread_count),
+//                        String.valueOf(unreadCount));
+//                Toast.makeText(MainTimeLineActivity.this, tip,
+//                        Toast.LENGTH_LONG).show();
+//                abortBroadcast();
+//            }
         }
     }
-
 
     public void setMentionsWeiboCount(int count) {
         LeftMenuFragment fragment = getMenuFragment();

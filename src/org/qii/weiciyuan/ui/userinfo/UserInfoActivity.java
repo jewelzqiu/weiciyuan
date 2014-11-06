@@ -76,16 +76,13 @@ import java.util.List;
  */
 public class UserInfoActivity extends AbstractAppActivity {
 
-    private String token;
+    private static final int REFRESH_LOADER_ID = 0;
 
+    private String token;
     private UserBean bean;
 
     private MyAsyncTask<Void, UserBean, UserBean> followOrUnfollowTask;
-
     private ModifyGroupMemberTask modifyGroupMemberTask;
-
-    private static final int REFRESH_LOADER_ID = 0;
-
 
     public String getToken() {
         if (TextUtils.isEmpty(token)) {
@@ -105,7 +102,6 @@ public class UserInfoActivity extends AbstractAppActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
     }
 
     @Override
@@ -167,8 +163,6 @@ public class UserInfoActivity extends AbstractAppActivity {
             startActivity(intent);
             finish();
         }
-
-
     }
 
     private boolean isMyselfProfile() {
@@ -229,12 +223,9 @@ public class UserInfoActivity extends AbstractAppActivity {
 
                     AnimationUtility
                             .translateFragmentY(userInfoFragment, -400, 0, userInfoFragment);
-
                 }
             }
         });
-
-
     }
 
     private void processIntent(Intent intent) {
@@ -248,10 +239,8 @@ public class UserInfoActivity extends AbstractAppActivity {
         bean.setScreen_name(new String(msg.getRecords()[0].getPayload()));
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         if (isMyselfProfile()) {
 
             getMenuInflater().inflate(R.menu.actionbar_menu_myinfoactivity, menu);
@@ -277,7 +266,6 @@ public class UserInfoActivity extends AbstractAppActivity {
         }
         return super.onCreateOptionsMenu(menu);
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -340,10 +328,8 @@ public class UserInfoActivity extends AbstractAppActivity {
     }
 
     public void updateRemark(String remark) {
-
         new UpdateRemarkTask(remark).executeOnExecutor(MyAsyncTask.THREAD_POOL_EXECUTOR);
     }
-
 
     private UserInfoFragment getInfoFragment() {
         return ((UserInfoFragment) getSupportFragmentManager().findFragmentByTag(
@@ -354,7 +340,6 @@ public class UserInfoActivity extends AbstractAppActivity {
         ManageGroupDialog dialog = new ManageGroupDialog(GlobalContext.getInstance().getGroup(),
                 bean.getId());
         dialog.show(getSupportFragmentManager(), "");
-
     }
 
     public void handleGroup(List<String> add, List<String> remove) {
@@ -367,7 +352,6 @@ public class UserInfoActivity extends AbstractAppActivity {
     private class ModifyGroupMemberTask extends MyAsyncTask<Void, Void, Void> {
 
         List<String> add;
-
         List<String> remove;
 
         public ModifyGroupMemberTask(List<String> add, List<String> remove) {
@@ -450,7 +434,6 @@ public class UserInfoActivity extends AbstractAppActivity {
         }
     }
 
-
     private class FollowTask extends MyAsyncTask<Void, UserBean, UserBean> {
 
         WeiboException e;
@@ -462,7 +445,6 @@ public class UserInfoActivity extends AbstractAppActivity {
 
         @Override
         protected UserBean doInBackground(Void... params) {
-
             FriendshipsDao dao = new FriendshipsDao(getToken());
             if (!TextUtils.isEmpty(bean.getId())) {
                 dao.setUid(bean.getId());
@@ -489,7 +471,6 @@ public class UserInfoActivity extends AbstractAppActivity {
 
                         break;
                 }
-
             }
         }
 
@@ -505,7 +486,6 @@ public class UserInfoActivity extends AbstractAppActivity {
         }
     }
 
-
     private class RemoveFanTask extends MyAsyncTask<Void, UserBean, UserBean> {
 
         WeiboException e;
@@ -517,7 +497,6 @@ public class UserInfoActivity extends AbstractAppActivity {
 
         @Override
         protected UserBean doInBackground(Void... params) {
-
             FanDao dao = new FanDao(getToken(), bean.getId());
 
             try {
@@ -535,9 +514,7 @@ public class UserInfoActivity extends AbstractAppActivity {
             super.onCancelled(userBean);
             if (e != null) {
                 Toast.makeText(UserInfoActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-
             }
-
         }
 
         @Override
@@ -550,7 +527,6 @@ public class UserInfoActivity extends AbstractAppActivity {
         }
     }
 
-
     class UpdateRemarkTask extends MyAsyncTask<Void, UserBean, UserBean> {
 
         WeiboException e;
@@ -560,7 +536,6 @@ public class UserInfoActivity extends AbstractAppActivity {
         UpdateRemarkTask(String remark) {
             this.remark = remark;
         }
-
 
         @Override
         protected UserBean doInBackground(Void... params) {
@@ -588,10 +563,8 @@ public class UserInfoActivity extends AbstractAppActivity {
             if (getInfoFragment() != null) {
                 getInfoFragment().forceReloadData(userBean);
             }
-
         }
     }
-
 
     private static class RefreshLoader extends AbstractAsyncNetRequestTaskLoader<UserBean> {
 
@@ -622,7 +595,6 @@ public class UserInfoActivity extends AbstractAppActivity {
             return dao.getUserInfo();
         }
     }
-
 
     private LoaderManager.LoaderCallbacks<AsyncTaskLoaderResult<UserBean>> refreshCallback
             = new LoaderManager.LoaderCallbacks<AsyncTaskLoaderResult<UserBean>>() {
@@ -669,6 +641,4 @@ public class UserInfoActivity extends AbstractAppActivity {
 
         }
     };
-
-
 }
