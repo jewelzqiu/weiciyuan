@@ -125,7 +125,6 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         if (savedInstanceState != null) {
             accountBean = savedInstanceState.getParcelable(BundleArgsConstants.ACCOUNT_EXTRA);
         } else {
@@ -145,6 +144,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         buildInterface(savedInstanceState);
     }
 
+    //build phone ui or table ui
     private void buildInterface(Bundle savedInstanceState) {
         getActionBar().setTitle(GlobalContext.getInstance().getCurrentAccountName());
         getWindow().setBackgroundDrawable(null);
@@ -170,6 +170,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         configSlidingMenu(phone);
     }
 
+    //init fragments
     private void initFragments() {
         Fragment friend = getFriendsTimeLineFragment();
         Fragment mentions = getMentionsTimeLineFragment();
@@ -232,6 +233,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         }
     }
 
+    //configure left menu
     private void configSlidingMenu(boolean phone) {
         SlidingMenu slidingMenu = getSlidingMenu();
         slidingMenu.setShadowWidthRes(R.dimen.shadow_width);
@@ -397,6 +399,7 @@ public class MainTimeLineActivity extends MainTimeLineParentActivity {
         return accountBean;
     }
 
+    //read clipboard to know whether there are any string link can be opened
     private void readClipboard() {
         ClipboardManager cm = (ClipboardManager) getApplicationContext().getSystemService(
                 Context.CLIPBOARD_SERVICE);
