@@ -1,19 +1,23 @@
 buildscript {
     repositories {
         jcenter()
+        maven { url 'http://download.crashlytics.com/maven' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.13.2'
+        classpath 'com.crashlytics.tools.gradle:crashlytics-gradle:1.+'
     }
 }
 
 allprojects {
     repositories {
         jcenter()
+        maven { url 'http://download.crashlytics.com/maven' }
     }
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'crashlytics'
 
 android {
     compileOptions {
@@ -89,6 +93,7 @@ android {
 
     /*
      * android:targetPackage cant use ${applicationId}, so define a string source called "applicationId"
+     * Preference intent android:data dont support ${applicationId}
      */
 
     buildTypes {
@@ -96,12 +101,16 @@ android {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
             resValue "string", "applicationId", "org.qii.weiciyuan" + getApplicationIdSuffix()
+            resValue "string", "weiciyuanOfficalWeiboName",
+                    "org.qii.weiciyuan" + getApplicationIdSuffix() + ".mention://@四次元App"
             debuggable true
             runProguard false
             signingConfig signingConfigs.debug
         }
         release {
-            resValue "string", "applicationId", "org.qii.weiciyuan" + getApplicationIdSuffix()
+            resValue "string", "applicationId", "org.qii.weiciyuan"
+            resValue "string", "weiciyuanOfficalWeiboName",
+                    "org.qii.weiciyuan" + ".mention://@四次元App"
             debuggable false
             runProguard false
             signingConfig signingConfigs.release
@@ -119,6 +128,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:support-v4:21.0.0'
+    compile 'com.crashlytics.android:crashlytics:1.1.11'
     compile(project(':libs:slidingmenulibrary')) {
         exclude group: 'com.google.android', module: 'support-v4'
     }

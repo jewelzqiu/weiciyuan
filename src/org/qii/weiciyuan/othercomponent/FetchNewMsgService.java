@@ -68,7 +68,6 @@ public class FetchNewMsgService extends IntentService {
         }
 
         String action = intent.getAction();
-
         if (ACTION_ALARM_MANAGER.equals(action)) {
             AppLogger.i("FetchNewMsgService is started by " + ACTION_ALARM_MANAGER);
             if (SettingUtility.disableFetchAtNight() && isNowNight()) {
@@ -79,7 +78,10 @@ public class FetchNewMsgService extends IntentService {
             //empty
             AppLogger.i("FetchNewMsgService is started by " + ACTION_OPEN_APP);
         } else {
-            throw new IllegalArgumentException("Intent action is empty");
+            AppLogger.i("FetchNewMsgService receive Intent whose Action is empty");
+//            throw new IllegalArgumentException("Intent action is empty");
+            //why System send Intent object whose Action is empty? fuck google, it is impossible according to api documents when this service flag is START_NOT_STICKY
+            return;
         }
 
         List<AccountBean> accountBeanList = AccountDBTask.getAccountList();
