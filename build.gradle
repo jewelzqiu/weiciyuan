@@ -1,23 +1,19 @@
 buildscript {
     repositories {
         jcenter()
-        maven { url 'http://download.crashlytics.com/maven' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.13.2'
-        classpath 'com.crashlytics.tools.gradle:crashlytics-gradle:1.+'
+        classpath 'com.android.tools.build:gradle:1.0.0'
     }
 }
 
 allprojects {
     repositories {
         jcenter()
-        maven { url 'http://download.crashlytics.com/maven' }
     }
 }
 
 apply plugin: 'com.android.application'
-apply plugin: 'crashlytics'
 
 android {
     compileOptions {
@@ -25,14 +21,14 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
 
-    buildToolsVersion "21.1.0"
+    buildToolsVersion "21.1.2"
     compileSdkVersion 21
 
     defaultConfig {
         applicationId "org.qii.weiciyuan"
         minSdkVersion 17
         targetSdkVersion 21
-        versionCode - 1
+        versionCode 1
         versionName null
     }
 
@@ -104,7 +100,7 @@ android {
             resValue "string", "weiciyuanOfficalWeiboName",
                     "org.qii.weiciyuan" + getApplicationIdSuffix() + ".mention://@四次元App"
             debuggable true
-            runProguard false
+            minifyEnabled false
             signingConfig signingConfigs.debug
         }
         release {
@@ -112,7 +108,7 @@ android {
             resValue "string", "weiciyuanOfficalWeiboName",
                     "org.qii.weiciyuan" + ".mention://@四次元App"
             debuggable false
-            runProguard false
+            minifyEnabled false
             signingConfig signingConfigs.release
         }
 
@@ -127,14 +123,12 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:support-v4:21.0.0'
-    compile 'com.crashlytics.android:crashlytics:1.1.11'
+    compile 'com.android.support:support-v4:21.0.3'
     compile(project(':libs:slidingmenulibrary')) {
         exclude group: 'com.google.android', module: 'support-v4'
     }
     compile(project(':libs:showcaseviewlibrary')) {
         exclude group: 'com.google.android', module: 'support-v4'
-
     }
 }
 
