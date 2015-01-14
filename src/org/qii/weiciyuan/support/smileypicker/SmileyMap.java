@@ -93,6 +93,9 @@ public class SmileyMap {
         general.put("[不要]", "face274.png");
         general.put("[熊猫]", "face002.png");
 
+        general.put("[doge]", "doge_org.png");
+        general.put("[笑cry]", "laugh_cry.png");
+
         /**
          * huahua emotion
          */
